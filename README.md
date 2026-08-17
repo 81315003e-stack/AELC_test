@@ -1,69 +1,100 @@
-# 藝術冒險：我的視角
+# Art Adventure: My Own View
 
-一個給國小學生的 3D 網頁小遊戲，用來搭配藝術教育情境的教學設計。玩家操作一位戴貝雷帽的小畫家，在彩虹島上走動，在三座畫架前完成三件創作。
+A 3D browser game for primary school art classes, built around a three-layer creative sequence: idea, making, reflection. Students play on a tablet or laptop, and their teacher sees the whole class gallery on a second page.
 
-線上遊玩：`https://<你的帳號>.github.io/<repo 名稱>/`
+## Files
 
-## 教學設計原則
+| File | What it is |
+|---|---|
+| `index.html` | The student game. Deploy this as the site homepage |
+| `teacher.html` | Read-only class gallery for the teacher |
+| `apps-script/Code.gs` | Google Apps Script that writes submissions into a spreadsheet |
+| `README_zh-TW.md` | Chinese version of this document |
 
-這個遊戲刻意不採用一般教育遊戲的答對答錯機制，理由是：情境本身要處理的問題就是「有些學生覺得自己不會畫畫」，而那種自我否定通常來自單一評價標準。如果遊戲裡再放一次對錯判定，等於把問題原封不動搬進遊戲。
+## The three layers
 
-因此三個關卡都設計成多解：
+**Idea layer.** Before any tool appears, students pick one thing they want to say: something I love, a place I like, how I feel today, something I imagine, someone important, something that bothers me. This choice stays visible in the corner for the rest of the session, and the drawing station repeats it back to them. Separating idea from technique is the core move: it guarantees every student starts with content of their own, so the tools become a way to reach an idea rather than a test of ability.
 
-| 關卡 | 機制 | 設計理由 |
-|---|---|---|
-| 混色實驗室 | 三組原色組合都成立，各自產生正確的二次色 | 色彩學上紅加黃是橘、藍加黃是綠，不能判為錯誤 |
-| 形狀工作坊 | 四個形狀任選其一都算完成 | 構圖選擇沒有標準答案 |
-| 自由創作 | 畫任何東西都算完成，空白也可以 | 表達本身就是目的 |
+**Making layer.** Three easels on Rainbow Island. The colour mixing lab treats all three primary pairs as correct, because they are. The shape workshop accepts any of four shapes. The drawing canvas accepts anything, including a blank one. There is no timer and no score, and the counter reads artworks made rather than points earned.
 
-其他一致性設計：
+**Reflection layer.** One tap-sized question follows each station, plus a closing question at the gallery.
 
-- 沒有計時器，沒有分數，HUD 顯示的是「已完成作品」件數而非星星數
-- 玩家不會失敗，所有回饋文字都是敘述而非糾正
-- 每個彈窗都有離開按鈕，玩家隨時可以先走開，稍後再回來
+| When | Question |
+|---|---|
+| After mixing | Which colour do you like better? |
+| After shapes | Why did you pick that shape? |
+| After drawing | How much of this came from your idea? |
+| At the gallery | Which one is most like you? |
 
-## 技術結構
+Questions are tap-to-answer rather than typed, since typing in a second language would filter out exactly the students the game is for. Only the gallery title is free text.
 
-單一 HTML 檔案，沒有 build step，沒有後端。
+### Reflection is not the only data
 
-- **3D 世界**：Three.js r128，從 cdnjs 載入，MeshToonMaterial 卡通渲染
-- **介面**：純 HTML 與 CSS 疊在 WebGL 畫布上方，中文字全部由瀏覽器渲染，不進 WebGL
-- **兩層連動**：`updateBeaconsPosition()` 用 `Vector3.project(camera)` 把畫架的 3D 座標投影成螢幕像素，再更新浮動標籤的 CSS 位置
-- **繪圖關卡**：獨立的 2D canvas，同時綁定滑鼠與觸控事件
+The game also logs behaviour without asking: how many times a mix was reset, how many times the canvas was cleared, how many strokes were drawn, how long each station took, and how often a student walked away from an easel and came back. Self-report and behaviour can then be compared, which is more informative than either alone. A student who says the drawing came entirely from their idea but cleared the canvas five times is telling you something the question alone would miss.
 
-## 操作方式
+## Saving
 
-- 電腦：方向鍵或 WASD 移動
-- 手機與平板：畫面左下角方向鍵
-- 走到畫架旁約 2.5 單位距離內會自動開啟關卡
+Progress is stored in the browser using `localStorage`, so a student can close the tab and continue later on the same device. Two consequences worth planning for:
 
-## 部署到 GitHub Pages
+- **Shared tablets need the switch button.** Storage is tied to the browser, not the person. The done screen has a `Next student` button that clears the session. Show students where it is.
+- **Preview environments block storage.** If the file is opened inside a sandboxed preview rather than a real deployment, saving silently turns off and the start screen says so. On GitHub Pages it works normally.
 
-1. 建立一個 Public repo
-2. 把 `index.html` 與 `README.md` 上傳到根目錄
-3. Settings → Pages → Source 選 `Deploy from a branch`，分支選 `main`，資料夾選 `/ (root)`
-4. 等待一到兩分鐘後開啟網址
+Students are identified by class code and seat number, for example `4A-17`. No names are collected anywhere in the system.
 
-### 校園網路注意事項
+## Setting up the teacher view
 
-Three.js 從 `cdnjs.cloudflare.com` 載入。若學校網路封鎖外部 CDN，畫面會全白。解法是把 `three.min.js` 下載後放進 repo，並將 HTML 中的 script 標籤改為：
+**1. Create the spreadsheet and script**
 
-```html
-<script src="./three.min.js"></script>
+- Make a new Google Sheet
+- Extensions, then Apps Script
+- Delete the placeholder code, paste in `apps-script/Code.gs`, and save
+- Deploy, New deployment, Web app. Execute as **Me**, access **Anyone**
+- Copy the `/exec` URL it gives you
+
+**2. Connect the game**
+
+Open `index.html`, find this line near the start of the script block, and paste the URL between the quotes:
+
+```js
+const APPS_SCRIPT_URL = '';
 ```
 
-## 已知限制
+Leaving it empty is a valid setup. The game still works and still saves locally, it just does not send anything.
 
-- 作品不會儲存，重新整理後歸零
-- 沒有反思環節，目前只走完了想法層與實作層
-- 手機直式螢幕視野較窄，建議橫式使用
+**3. Publish the sheet for reading**
 
-## 後續可加入的功能
+In the sheet: File, Share, Publish to web. Choose the `Responses` sheet and the CSV format, then publish. Copy that link.
 
-- 反思關卡：完成三件作品後，讓玩家為自己的作品命名並說明一個選擇
-- AI 輔助標記：若加入生成式工具路徑，作品需顯示參與程度標籤
-- 同儕評論：限制句型為「我看到⋯⋯」，不開放「你應該⋯⋯」
+**4. Open the gallery**
 
-## 授權
+Open `teacher.html`, paste the CSV link into the box, and load. The link is remembered on that computer. The page shows class totals, what students chose to say, which artwork felt most like them, and one card per student with their drawing.
 
-Three.js 採 MIT 授權。本專案程式碼供教學用途自由使用與修改。
+## Deploying to GitHub Pages
+
+1. Create a Public repository
+2. Upload `index.html`, `teacher.html`, and the `apps-script` folder to the root
+3. Settings, Pages, source `Deploy from a branch`, branch `main`, folder `/ (root)`
+4. Student link: `https://<username>.github.io/<repo>/`
+5. Teacher link: `https://<username>.github.io/<repo>/teacher.html`
+
+Keep the teacher link off the student handout. It is read-only, but there is no reason to hand it out.
+
+### If the screen is blank
+
+Three.js loads from `cdnjs.cloudflare.com`. If a school network blocks external CDNs, nothing renders. Download `three.min.js`, add it to the repository, and change the script tag to `<script src="./three.min.js"></script>`.
+
+## Known limits
+
+- Drawings are stored as small PNG thumbnails, 160 by 110 pixels. A spreadsheet cell holds 50,000 characters, and any image over that is dropped rather than truncated, so the teacher card shows a placeholder instead
+- Submissions are sent once. If the network is down, the work stays on the tablet and the student sees a message saying so, but there is no automatic retry
+- The teacher page reads the sheet and never writes to it, so there is no way to reply to a student from it
+
+## Possible next steps
+
+- Peer comments restricted to the sentence frame "I can see..." rather than "You should..."
+- A composition station, matching the fourth panel on the project poster
+- An AI assistance path with a visible label showing how much help was used
+
+## Licence
+
+Three.js is MIT licensed. The code in this project is free to use and modify for teaching purposes.
