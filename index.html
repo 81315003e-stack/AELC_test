@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>藝術冒險：我的視角</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #87CEEB;
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .score-card {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: 4px solid #FF6B6B;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+            font-size: 22px;
+            color: #2D3436;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .level-badge {
+            background: #FFEAA7;
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 4px solid #FDCB6E;
+            font-size: 18px;
+            color: #D63031;
+            font-weight: bold;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.1);
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 25px;
+            border-radius: 20px;
+            border: 3px solid #74B9FF;
+            font-size: 16px;
+            color: #0984E3;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        .modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            position: relative;
+            background: #FFF;
+            width: 90%;
+            max-width: 550px;
+            max-height: 92vh;
+            overflow-y: auto;
+            border-radius: 30px;
+            border: 8px solid #6C5CE7;
+            padding: 28px 25px 25px;
+            text-align: center;
+            box-shadow: 0 15px 0 rgba(0,0,0,0.2);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .modal.active .modal-card {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 3px solid #B2BEC3;
+            background: #FFF;
+            color: #636E72;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-btn:active { transform: translateY(2px); }
+
+        .modal-title {
+            font-size: 26px;
+            color: #6C5CE7;
+        }
+
+        .modal-desc {
+            font-size: 17px;
+            color: #636E72;
+            line-height: 1.6;
+        }
+
+        .feedback {
+            min-height: 26px;
+            font-size: 17px;
+            font-weight: bold;
+            color: #00B894;
+        }
+
+        .color-pots {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 6px 0;
+        }
+
+        .color-pot {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 4px solid #FFF;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .color-pot:active { transform: scale(0.9); }
+
+        .mix-preview-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 6px 0;
+        }
+
+        .color-circle {
+            width: 66px;
+            height: 66px;
+            border-radius: 50%;
+            border: 4px solid #DFE6E9;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        }
+
+        .shape-grid {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .shape-btn {
+            width: 78px;
+            height: 78px;
+            background: #FFEAA7;
+            border: 4px solid #FDCB6E;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 34px;
+            box-shadow: 0 6px 0 #E1B12C;
+            transition: transform 0.1s;
+        }
+
+        .shape-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #E1B12C;
+        }
+
+        #paint-canvas {
+            background: #FFF;
+            border: 4px dashed #B2BEC3;
+            border-radius: 15px;
+            cursor: crosshair;
+            touch-action: none;
+            max-width: 100%;
+        }
+
+        .palette {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .palette-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        .palette-btn.selected {
+            transform: scale(1.2);
+            border-color: #2D3436;
+        }
+
+        .btn {
+            background: #00B894;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 19px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #00896C;
+            transition: transform 0.1s;
+            margin-top: 6px;
+        }
+
+        .btn.secondary {
+            background: #A29BFE;
+            box-shadow: 0 6px 0 #6C5CE7;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #00896C;
+        }
+
+        .quest-beacon {
+            position: absolute;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translate(-50%, -100%);
+        }
+
+        .quest-beacon-icon {
+            font-size: 30px;
+            animation: bounce 1s infinite alternate ease-in-out;
+        }
+
+        .quest-beacon-text {
+            background: #6C5CE7;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-10px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .quest-beacon-icon { animation: none; }
+        }
+
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        #touch-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: none;
+            gap: 10px;
+            z-index: 15;
+            pointer-events: auto;
+        }
+
+        .dpad-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.8);
+            border: 3px solid #6C5CE7;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #6C5CE7;
+            font-weight: bold;
+            touch-action: manipulation;
+        }
+
+        @media (max-width: 768px) {
+            #touch-controls { display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(2, 60px); }
+            .controls-hint { display: none; }
+            .score-card, .level-badge { font-size: 15px; padding: 8px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <div id="ui-layer">
+        <div class="hud-header">
+            <div class="score-card">
+                <span>🎨 已完成作品</span>
+                <span id="star-count">0 / 3</span>
+            </div>
+            <div class="level-badge" id="zone-title">🌈 彩虹島</div>
+        </div>
+
+        <div class="controls-hint">
+            用 <b>方向鍵</b> 或 <b>WASD</b> 走路，走到畫架旁邊就可以創作 🖌️
+        </div>
+
+        <div id="touch-controls">
+            <div></div>
+            <div class="dpad-btn" id="btn-up">▲</div>
+            <div></div>
+            <div class="dpad-btn" id="btn-left">◀</div>
+            <div class="dpad-btn" id="btn-down">▼</div>
+            <div class="dpad-btn" id="btn-right">▶</div>
+        </div>
+    </div>
+
+    <div id="beacons-container"></div>
+
+    <!-- 關卡一：混色實驗 -->
+    <div class="modal" id="modal-color">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeChallenge()" aria-label="離開這個畫架">✕</button>
+            <h2 class="modal-title">🎨 混色實驗室</h2>
+            <p class="modal-desc">選兩個不一樣的顏色，看看它們會變成什麼。<br>沒有正確答案，每一種組合都是新發現。</p>
+
+            <div class="mix-preview-box">
+                <div class="color-circle" id="mix-slot-1"></div>
+                <span style="font-size:24px; font-weight:bold;">＋</span>
+                <div class="color-circle" id="mix-slot-2"></div>
+                <span style="font-size:24px; font-weight:bold;">＝</span>
+                <div class="color-circle" id="mix-result" style="background-color:#EEE;"></div>
+            </div>
+
+            <div class="color-pots">
+                <div class="color-pot" style="background:#FF7675;" onclick="selectMixColor('#FF7675','red')"></div>
+                <div class="color-pot" style="background:#74B9FF;" onclick="selectMixColor('#74B9FF','blue')"></div>
+                <div class="color-pot" style="background:#FFEAA7;" onclick="selectMixColor('#FFEAA7','yellow')"></div>
+            </div>
+
+            <p class="feedback" id="color-feedback"></p>
+            <button class="btn secondary" onclick="resetColorMix()">再試一次</button>
+        </div>
+    </div>
+
+    <!-- 關卡二：形狀選擇 -->
+    <div class="modal" id="modal-shape">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeChallenge()" aria-label="離開這個畫架">✕</button>
+            <h2 class="modal-title">📐 形狀工作坊</h2>
+            <p class="modal-desc">挑一個形狀放進你的作品裡。<br>你選哪一個都可以，這是你的畫。</p>
+
+            <div class="shape-grid">
+                <div class="shape-btn" onclick="pickShape('圓形','⚪')">⚪</div>
+                <div class="shape-btn" onclick="pickShape('星形','⭐')">⭐</div>
+                <div class="shape-btn" onclick="pickShape('方形','🟦')">🟦</div>
+                <div class="shape-btn" onclick="pickShape('三角形','🔺')">🔺</div>
+            </div>
+
+            <p class="feedback" id="shape-feedback"></p>
+        </div>
+    </div>
+
+    <!-- 關卡三：自由創作 -->
+    <div class="modal" id="modal-draw">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeChallenge()" aria-label="離開這個畫架">✕</button>
+            <h2 class="modal-title">🖌️ 畫下你想說的事</h2>
+            <p class="modal-desc">畫什麼都可以，畫得像不像不重要。</p>
+
+            <canvas id="paint-canvas" width="320" height="220"></canvas>
+
+            <div class="palette">
+                <div class="palette-btn selected" style="background:#FF7675;" onclick="setPaintColor('#FF7675', this)"></div>
+                <div class="palette-btn" style="background:#74B9FF;" onclick="setPaintColor('#74B9FF', this)"></div>
+                <div class="palette-btn" style="background:#55E6C1;" onclick="setPaintColor('#55E6C1', this)"></div>
+                <div class="palette-btn" style="background:#FFEAA7;" onclick="setPaintColor('#FFEAA7', this)"></div>
+                <div class="palette-btn" style="background:#A29BFE;" onclick="setPaintColor('#A29BFE', this)"></div>
+                <div class="palette-btn" style="background:#2D3436;" onclick="setPaintColor('#2D3436', this)"></div>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+                <button class="btn secondary" onclick="clearCanvas()">清空重畫</button>
+                <button class="btn" onclick="finishDrawing()">我畫好了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 完成 -->
+    <div class="modal" id="modal-win">
+        <div class="modal-card">
+            <h2 class="modal-title">🌟 你的作品展出中 🌟</h2>
+            <p class="modal-desc">三件作品都完成了，整座島因為你的選擇而變得有顏色。<br>每個人做出來的都不一樣，那就是你的視角。</p>
+            <div style="font-size:70px; margin:6px 0;">🖼️🎨✨</div>
+            <button class="btn" onclick="restartGame()">再玩一次</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer;
+        let player, paintbrush;
+        const clock = new THREE.Clock();
+        const activeKeys = {};
+        const touchInputs = { up: false, down: false, left: false, right: false };
+
+        const easels = [];
+        let worksDone = 0;
+        const TOTAL_WORKS = 3;
+        let activeChallenge = null;
+        let jumpTimer = 0;
+
+        let selectedColors = [];
+
+        const MIX_TABLE = {
+            'blue|red':    { hex: '#A29BFE', name: '紫色' },
+            'red|yellow':  { hex: '#FFA502', name: '橘色' },
+            'blue|yellow': { hex: '#26DE81', name: '綠色' }
+        };
+        const COLOR_ZH = { red: '紅色', blue: '藍色', yellow: '黃色' };
+
+        let paintColor = '#FF7675';
+        let isPainting = false;
+        let paintCtx;
+
+        window.addEventListener('load', () => {
+            init3DScene();
+            init2DPaintCanvas();
+            setupEventListeners();
+            animate();
+        });
+
+        function init3DScene() {
+            const container = document.getElementById('game-container');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.FogExp2(0x87CEEB, 0.015);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 12, 16);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+
+            const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            sunLight.position.set(20, 40, 20);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 100;
+            const d = 25;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            scene.add(sunLight);
+
+            createWorldEnvironment();
+            createPlayer();
+            createEasels();
+        }
+
+        function createWorldEnvironment() {
+            const islandGroup = new THREE.Group();
+
+            const mainFloor = new THREE.Mesh(
+                new THREE.CylinderGeometry(18, 20, 2, 32),
+                new THREE.MeshToonMaterial({ color: 0x7BED9F })
+            );
+            mainFloor.position.y = -1;
+            mainFloor.receiveShadow = true;
+            islandGroup.add(mainFloor);
+
+            const miniIslands = [
+                { x: -22, z: -10, r: 6, color: 0xFF7675 },
+                { x: 22,  z: -8,  r: 7, color: 0xFFEAA7 },
+                { x: 0,   z: 22,  r: 8, color: 0xA29BFE }
+            ];
+
+            miniIslands.forEach(p => {
+                const island = new THREE.Mesh(
+                    new THREE.CylinderGeometry(p.r, p.r - 1, 2, 16),
+                    new THREE.MeshToonMaterial({ color: p.color })
+                );
+                island.position.set(p.x, -1, p.z);
+                island.receiveShadow = true;
+                islandGroup.add(island);
+
+                const crayon = createCrayonMesh(p.color);
+                crayon.position.set(p.x, 1, p.z);
+                crayon.rotation.z = Math.PI / 6;
+                islandGroup.add(crayon);
+            });
+
+            scene.add(islandGroup);
+            createTrees();
+        }
+
+        function createCrayonMesh(colorHex) {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshToonMaterial({ color: colorHex });
+
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 4, 12), mat);
+            body.castShadow = true;
+            group.add(body);
+
+            const tip = new THREE.Mesh(new THREE.ConeGeometry(0.8, 1.5, 12), mat);
+            tip.position.y = 2.75;
+            tip.castShadow = true;
+            group.add(tip);
+
+            return group;
+        }
+
+        function createTrees() {
+            const treePositions = [
+                { x: -10, z: -10, c: 0xFF6B6B }, { x: 10, z: -12, c: 0x48DBFB },
+                { x: -12, z: 8,   c: 0xFECA57 }, { x: 12, z: 10,  c: 0xFF9FF3 }
+            ];
+
+            treePositions.forEach(p => {
+                const tree = new THREE.Group();
+
+                const trunk = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.4, 0.6, 3, 8),
+                    new THREE.MeshToonMaterial({ color: 0x8395A7 })
+                );
+                trunk.position.y = 1.5;
+                trunk.castShadow = true;
+                tree.add(trunk);
+
+                const foliage = new THREE.Mesh(
+                    new THREE.DodecahedronGeometry(1.8, 1),
+                    new THREE.MeshToonMaterial({ color: p.c })
+                );
+                foliage.position.y = 3.5;
+                foliage.castShadow = true;
+                tree.add(foliage);
+
+                tree.position.set(p.x, 0, p.z);
+                scene.add(tree);
+            });
+        }
+
+        function createPlayer() {
+            player = new THREE.Group();
+
+            const skinMat = new THREE.MeshToonMaterial({ color: 0xFFDFD3 });
+            const shirtMat = new THREE.MeshToonMaterial({ color: 0xFF5252 });
+            const hatMat = new THREE.MeshToonMaterial({ color: 0x2D3436 });
+
+            const body = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 16), shirtMat);
+            body.position.y = 1.2;
+            body.scale.set(1, 1.2, 1);
+            body.castShadow = true;
+            player.add(body);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.8, 16, 16), skinMat);
+            head.position.y = 2.5;
+            head.castShadow = true;
+            player.add(head);
+
+            const hat = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.2, 0.4, 12), hatMat);
+            hat.position.set(0, 3.2, 0);
+            hat.rotation.z = -0.2;
+            hat.castShadow = true;
+            player.add(hat);
+
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const eye1 = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), eyeMat);
+            eye1.position.set(0.25, 2.6, 0.7);
+            const eye2 = eye1.clone();
+            eye2.position.x = -0.25;
+            player.add(eye1, eye2);
+
+            paintbrush = new THREE.Group();
+            const handle = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.1, 0.1, 3, 8),
+                new THREE.MeshToonMaterial({ color: 0xDEB887 })
+            );
+            handle.position.y = 1.5;
+            paintbrush.add(handle);
+
+            const brushTip = new THREE.Mesh(
+                new THREE.ConeGeometry(0.25, 0.8, 8),
+                new THREE.MeshToonMaterial({ color: 0xFF007F })
+            );
+            brushTip.position.y = 3.2;
+            paintbrush.add(brushTip);
+
+            paintbrush.position.set(0.9, 1.2, 0.2);
+            paintbrush.rotation.x = Math.PI / 4;
+            player.add(paintbrush);
+
+            player.position.set(0, 0, 5);
+            scene.add(player);
+        }
+
+        function createEasels() {
+            const easelData = [
+                { id: 'color', x: -8, z: -2,  title: '混色實驗室', type: 'color', color: 0xA29BFE },
+                { id: 'shape', x: 8,  z: -2,  title: '形狀工作坊', type: 'shape', color: 0xFDCB6E },
+                { id: 'draw',  x: 0,  z: -10, title: '自由創作',   type: 'draw',  color: 0xFF7675 }
+            ];
+
+            const beaconsContainer = document.getElementById('beacons-container');
+
+            easelData.forEach(data => {
+                const easelGroup = new THREE.Group();
+                const legMat = new THREE.MeshToonMaterial({ color: 0x8D6E63 });
+
+                const leg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 4, 8), legMat);
+                leg1.position.set(-1, 2, 0);
+                leg1.rotation.z = -0.2;
+
+                const leg2 = leg1.clone();
+                leg2.position.x = 1;
+                leg2.rotation.z = 0.2;
+
+                const leg3 = leg1.clone();
+                leg3.position.set(0, 2, -0.8);
+                leg3.rotation.set(-0.3, 0, 0);
+
+                easelGroup.add(leg1, leg2, leg3);
+
+                const boardMat = new THREE.MeshToonMaterial({ color: 0xFFFFFF });
+                const canvasMesh = new THREE.Mesh(new THREE.BoxGeometry(3, 2.2, 0.2), boardMat);
+                canvasMesh.position.set(0, 2.6, 0.2);
+                canvasMesh.castShadow = true;
+                easelGroup.add(canvasMesh);
+
+                const frameMesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(3.3, 2.5, 0.1),
+                    new THREE.MeshToonMaterial({ color: data.color })
+                );
+                frameMesh.position.set(0, 2.6, 0.12);
+                easelGroup.add(frameMesh);
+
+                easelGroup.position.set(data.x, 0, data.z);
+                scene.add(easelGroup);
+
+                const beacon = document.createElement('div');
+                beacon.className = 'quest-beacon';
+                beacon.innerHTML =
+                    '<div class="quest-beacon-icon">🖌️</div>' +
+                    '<div class="quest-beacon-text">' + data.title + '</div>';
+                beaconsContainer.appendChild(beacon);
+
+                easels.push({
+                    id: data.id,
+                    type: data.type,
+                    mesh: easelGroup,
+                    boardMat: boardMat,
+                    pos: new THREE.Vector3(data.x, 0, data.z),
+                    completed: false,
+                    snoozed: false,
+                    beaconEl: beacon
+                });
+            });
+        }
+
+        function setupEventListeners() {
+            window.addEventListener('keydown', e => { activeKeys[e.key.toLowerCase()] = true; });
+            window.addEventListener('keyup',   e => { activeKeys[e.key.toLowerCase()] = false; });
+
+            const bindTouch = (id, key) => {
+                const el = document.getElementById(id);
+                el.addEventListener('touchstart', e => { e.preventDefault(); touchInputs[key] = true; });
+                el.addEventListener('touchend',   e => { e.preventDefault(); touchInputs[key] = false; });
+                el.addEventListener('mousedown',  () => { touchInputs[key] = true; });
+                el.addEventListener('mouseup',    () => { touchInputs[key] = false; });
+                el.addEventListener('mouseleave', () => { touchInputs[key] = false; });
+            };
+
+            bindTouch('btn-up', 'up');
+            bindTouch('btn-down', 'down');
+            bindTouch('btn-left', 'left');
+            bindTouch('btn-right', 'right');
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            updatePlayerMovement(delta, time);
+            updateBeaconsPosition();
+            checkEaselProximity();
+
+            if (paintbrush) paintbrush.rotation.y = Math.sin(time * 3) * 0.2;
+
+            renderer.render(scene, camera);
+        }
+
+        function updatePlayerMovement(delta, time) {
+            if (activeChallenge) return;
+
+            const speed = 7.0;
+            let moveX = 0, moveZ = 0;
+
+            if (activeKeys['w'] || activeKeys['arrowup']    || touchInputs.up)    moveZ -= 1;
+            if (activeKeys['s'] || activeKeys['arrowdown']  || touchInputs.down)  moveZ += 1;
+            if (activeKeys['a'] || activeKeys['arrowleft']  || touchInputs.left)  moveX -= 1;
+            if (activeKeys['d'] || activeKeys['arrowright'] || touchInputs.right) moveX += 1;
+
+            if (jumpTimer > 0) jumpTimer -= delta;
+
+            if (moveX !== 0 || moveZ !== 0) {
+                const moveVec = new THREE.Vector3(moveX, 0, moveZ).normalize();
+                player.position.x += moveVec.x * speed * delta;
+                player.position.z += moveVec.z * speed * delta;
+
+                const dist = Math.sqrt(player.position.x ** 2 + player.position.z ** 2);
+                if (dist > 16) {
+                    player.position.x = (player.position.x / dist) * 16;
+                    player.position.z = (player.position.z / dist) * 16;
+                }
+
+                player.rotation.y = Math.atan2(moveVec.x, moveVec.z);
+                player.position.y = Math.abs(Math.sin(time * 10)) * 0.3;
+            } else {
+                player.position.y = Math.sin(time * 2) * 0.05;
+            }
+
+            if (jumpTimer > 0) player.position.y += jumpTimer * 6;
+
+            const targetCamPos = new THREE.Vector3(
+                player.position.x,
+                player.position.y + 10,
+                player.position.z + 14
+            );
+            camera.position.lerp(targetCamPos, 0.05);
+            camera.lookAt(player.position.x, player.position.y + 1, player.position.z);
+        }
+
+        function updateBeaconsPosition() {
+            easels.forEach(easel => {
+                if (!easel.beaconEl) return;
+
+                if (easel.completed) {
+                    easel.beaconEl.style.display = 'none';
+                    return;
+                }
+                easel.beaconEl.style.display = 'flex';
+
+                const worldPos = easel.pos.clone().add(new THREE.Vector3(0, 4, 0));
+                worldPos.project(camera);
+
+                easel.beaconEl.style.left = ((worldPos.x * 0.5 + 0.5) * window.innerWidth) + 'px';
+                easel.beaconEl.style.top  = ((-(worldPos.y * 0.5) + 0.5) * window.innerHeight) + 'px';
+            });
+        }
+
+        function checkEaselProximity() {
+            easels.forEach(easel => {
+                if (easel.completed) return;
+
+                const dist = player.position.distanceTo(easel.pos);
+
+                if (easel.snoozed) {
+                    if (dist > 5) easel.snoozed = false;
+                    return;
+                }
+
+                if (!activeChallenge && dist < 2.5) triggerChallenge(easel);
+            });
+        }
+
+        function triggerChallenge(easel) {
+            activeChallenge = easel;
+
+            if (easel.type === 'color') {
+                resetColorMix();
+                openModal('modal-color');
+            } else if (easel.type === 'shape') {
+                document.getElementById('shape-feedback').innerText = '';
+                openModal('modal-shape');
+            } else if (easel.type === 'draw') {
+                openModal('modal-draw');
+            }
+        }
+
+        function openModal(id)  { document.getElementById(id).classList.add('active'); }
+        function closeAllModals() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        }
+
+        function closeChallenge() {
+            if (activeChallenge) activeChallenge.snoozed = true;
+            activeChallenge = null;
+            closeAllModals();
+        }
+
+        /* 關卡一：混色。三組原色組合都是正確的色彩學結果。 */
+        function selectMixColor(hex, name) {
+            if (selectedColors.length >= 2) return;
+
+            selectedColors.push({ hex, name });
+            const slot = document.getElementById(selectedColors.length === 1 ? 'mix-slot-1' : 'mix-slot-2');
+            slot.style.backgroundColor = hex;
+
+            if (selectedColors.length === 2) evaluateColorMix();
+        }
+
+        function evaluateColorMix() {
+            const a = selectedColors[0].name;
+            const b = selectedColors[1].name;
+            const resultEl = document.getElementById('mix-result');
+            const feedbackEl = document.getElementById('color-feedback');
+
+            if (a === b) {
+                resultEl.style.backgroundColor = selectedColors[0].hex;
+                feedbackEl.style.color = '#6C5CE7';
+                feedbackEl.innerText = '兩個一樣的顏色還是同一個顏色，換一個試試看';
+                setTimeout(resetColorMix, 1400);
+                return;
+            }
+
+            const mix = MIX_TABLE[[a, b].sort().join('|')];
+            resultEl.style.backgroundColor = mix.hex;
+            feedbackEl.style.color = '#00B894';
+            feedbackEl.innerText = COLOR_ZH[a] + ' ＋ ' + COLOR_ZH[b] + ' ＝ ' + mix.name + '，你調出新顏色了';
+
+            setTimeout(completeCurrentChallenge, 1200);
+        }
+
+        function resetColorMix() {
+            selectedColors = [];
+            document.getElementById('mix-slot-1').style.backgroundColor = 'transparent';
+            document.getElementById('mix-slot-2').style.backgroundColor = 'transparent';
+            document.getElementById('mix-result').style.backgroundColor = '#EEE';
+            document.getElementById('color-feedback').innerText = '';
+        }
+
+        /* 關卡二：形狀。任何選擇都成立。 */
+        function pickShape(zhName, glyph) {
+            const feedbackEl = document.getElementById('shape-feedback');
+            feedbackEl.style.color = '#00B894';
+            feedbackEl.innerText = '你把' + zhName + ' ' + glyph + ' 放進作品裡了';
+            setTimeout(completeCurrentChallenge, 900);
+        }
+
+        /* 關卡三：自由創作 */
+        function init2DPaintCanvas() {
+            const canvas = document.getElementById('paint-canvas');
+            paintCtx = canvas.getContext('2d');
+            paintCtx.lineWidth = 8;
+            paintCtx.lineCap = 'round';
+            paintCtx.lineJoin = 'round';
+            paintCtx.strokeStyle = paintColor;
+
+            const getPos = e => {
+                const rect = canvas.getBoundingClientRect();
+                const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: (cx - rect.left) * (canvas.width / rect.width),
+                    y: (cy - rect.top) * (canvas.height / rect.height)
+                };
+            };
+
+            const startDraw = e => {
+                e.preventDefault();
+                isPainting = true;
+                const p = getPos(e);
+                paintCtx.beginPath();
+                paintCtx.moveTo(p.x, p.y);
+            };
+
+            const draw = e => {
+                if (!isPainting) return;
+                e.preventDefault();
+                const p = getPos(e);
+                paintCtx.lineTo(p.x, p.y);
+                paintCtx.stroke();
+            };
+
+            const stopDraw = () => { isPainting = false; };
+
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mousemove', draw);
+            window.addEventListener('mouseup', stopDraw);
+
+            canvas.addEventListener('touchstart', startDraw, { passive: false });
+            canvas.addEventListener('touchmove', draw, { passive: false });
+            canvas.addEventListener('touchend', stopDraw);
+        }
+
+        function setPaintColor(color, btn) {
+            paintColor = color;
+            paintCtx.strokeStyle = color;
+            document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        function clearCanvas() {
+            const canvas = document.getElementById('paint-canvas');
+            paintCtx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function finishDrawing() { completeCurrentChallenge(); }
+
+        /* 完成一件作品 */
+        function completeCurrentChallenge() {
+            if (!activeChallenge) return;
+
+            closeAllModals();
+            activeChallenge.completed = true;
+            activeChallenge.boardMat.color.set(0xFF9FF3);
+
+            worksDone++;
+            document.getElementById('star-count').innerText = worksDone + ' / ' + TOTAL_WORKS;
+
+            jumpTimer = 0.35;
+            activeChallenge = null;
+
+            if (worksDone >= TOTAL_WORKS) setTimeout(triggerVictory, 800);
+        }
+
+        function triggerVictory() {
+            openModal('modal-win');
+            startConfetti();
+        }
+
+        function restartGame() {
+            worksDone = 0;
+            document.getElementById('star-count').innerText = '0 / ' + TOTAL_WORKS;
+
+            easels.forEach(easel => {
+                easel.completed = false;
+                easel.snoozed = true;
+                easel.boardMat.color.set(0xFFFFFF);
+            });
+
+            resetColorMix();
+            clearCanvas();
+            document.getElementById('shape-feedback').innerText = '';
+
+            closeAllModals();
+            activeChallenge = null;
+            player.position.set(0, 0, 5);
+        }
+
+        /* 慶祝彩帶 */
+        let confettiParticles = [];
+        function startConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = ['#FF7675', '#74B9FF', '#55E6C1', '#FFEAA7', '#A29BFE'];
+            confettiParticles = [];
+
+            for (let i = 0; i < 120; i++) {
+                confettiParticles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 10 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    vy: Math.random() * 3 + 2,
+                    vx: Math.random() * 2 - 1
+                });
+            }
+
+            (function renderConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                confettiParticles.forEach(p => {
+                    p.y += p.vy;
+                    p.x += p.vx;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                });
+
+                if (document.getElementById('modal-win').classList.contains('active')) {
+                    requestAnimationFrame(renderConfetti);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            })();
+        }
+    </script>
+</body>
+</html>
