@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Art Adventure - Class Gallery</title>
+<style>
+:root {
+  --ink: #2D3436; --muted: #7A8489; --line: #E4E0D8; --paper: #F4F1EA;
+  --violet: #6C5CE7; --green: #00B894; --coral: #E17055; --amber: #FDCB6E;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font-family: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif; padding: 28px 20px 60px; }
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+header { border-bottom: 3px solid var(--ink); padding-bottom: 14px; margin-bottom: 22px; }
+h1 { font-size: 30px; letter-spacing: -.5px; }
+.sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+.setup { background: #FFF; border: 2px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 24px; }
+.setup label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.setup input { width: 100%; padding: 10px 12px; font-size: 14px; border: 2px solid var(--line); border-radius: 10px; font-family: monospace; }
+.setup .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+.bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+button { background: var(--ink); color: #FFF; border: 0; padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 700; cursor: pointer; }
+button.alt { background: #FFF; color: var(--ink); border: 2px solid var(--line); }
+select { padding: 9px 12px; border: 2px solid var(--line); border-radius: 999px; font-size: 14px; background: #FFF; }
+.status { font-size: 13px; color: var(--muted); }
+.status.err { color: var(--coral); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 26px; }
+.stat { background: #FFF; border: 2px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.stat .n { font-size: 26px; font-weight: 700; }
+.stat .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+
+h2 { font-size: 17px; margin: 26px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+
+.dist { display: flex; flex-direction: column; gap: 7px; margin-bottom: 8px; }
+.dist-row { display: grid; grid-template-columns: 190px 1fr 46px; gap: 10px; align-items: center; font-size: 13px; }
+.track { background: #E9E5DC; height: 16px; border-radius: 999px; overflow: hidden; }
+.fill { background: var(--violet); height: 100%; }
+.dist-row .cnt { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 16px; }
+.card { background: #FFF; border: 2px solid var(--line); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+.card .thumb { background: #FAF8F3; border-bottom: 2px solid var(--line); aspect-ratio: 16/11; display: flex; align-items: center; justify-content: center; }
+.card .thumb img { width: 100%; height: 100%; object-fit: contain; }
+.card .thumb .none { font-size: 12px; color: var(--muted); }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+.who { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.seat { font-weight: 700; font-size: 15px; }
+.time { font-size: 11px; color: var(--muted); }
+.galname { font-size: 15px; font-weight: 700; line-height: 1.3; }
+.galname.empty { color: var(--muted); font-weight: 400; font-style: italic; }
+.idea { display: inline-block; font-size: 12px; background: #EDE9FF; color: var(--violet); border-radius: 999px; padding: 3px 10px; font-weight: 700; align-self: flex-start; }
+.made { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+.dot { width: 17px; height: 17px; border-radius: 50%; border: 2px solid var(--line); display: inline-block; }
+.rline { font-size: 12px; color: var(--ink); line-height: 1.5; border-top: 1px dashed var(--line); padding-top: 8px; }
+.rline b { color: var(--violet); }
+.flag { font-size: 11px; color: var(--coral); font-weight: 700; }
+
+footer { margin-top: 40px; font-size: 12px; color: var(--muted); line-height: 1.7; border-top: 2px solid var(--line); padding-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Class Gallery</h1>
+  <div class="sub">Art Adventure &middot; teacher view &middot; read only</div>
+</header>
+
+<div class="setup">
+  <label for="csv">Published CSV link of your response sheet</label>
+  <input id="csv" type="text" placeholder="https://docs.google.com/spreadsheets/d/e/..../pub?output=csv">
+  <div class="bar">
+    <button id="load">Load gallery</button>
+    <button class="alt" id="refresh">Refresh</button>
+    <select id="filter"><option value="">All classes</option></select>
+    <span class="status" id="status"></span>
+  </div>
+  <div class="hint">
+    In your response sheet: File &rarr; Share &rarr; Publish to web &rarr; choose the Responses sheet &rarr; format CSV &rarr; Publish.
+    Paste that link here. It is remembered on this computer.
+  </div>
+</div>
+
+<div class="stats" id="stats"></div>
+
+<h2>What students chose to say</h2>
+<div class="dist" id="dist-idea"></div>
+
+<h2>Which artwork felt most like them</h2>
+<div class="dist" id="dist-mine"></div>
+
+<h2>Galleries</h2>
+<div class="grid" id="grid"></div>
+
+<footer>
+  Students are identified by class code and seat number only. No names are collected.<br>
+  Revision counts come from the game log, not from what students said about themselves.
+</footer>
+
+</div>
+
+<script>
+const LS_KEY = 'artadv:teacher:csv';
+const IDEA_LABEL = {
+  love: 'Something I love', place: 'A place I like', feel: 'How I feel today',
+  imagine: 'Something I imagine', person: 'Someone important', bother: 'Something that bothers me'
+};
+const MINE_LABEL = { color: 'My colour', shape: 'My shape', draw: 'My drawing' };
+const DRAW_LABEL = { all: 'All of it', some: 'Some of it', changed: 'Changed my mind', new: 'Became something new' };
+const SHAPE_WHY  = { nice: 'It looks nice', fun: 'It is fun', remind: 'It reminds me of something', felt: 'I just felt like it' };
+
+let rows = [];
+
+/* ---------- CSV parser that survives quoted commas and newlines ---------- */
+function parseCSV(text) {
+  const out = []; let row = [], field = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+      else field += c;
+    } else if (c === '"') q = true;
+    else if (c === ',') { row.push(field); field = ''; }
+    else if (c === '\n') { row.push(field); out.push(row); row = []; field = ''; }
+    else if (c !== '\r') field += c;
+  }
+  if (field.length || row.length) { row.push(field); out.push(row); }
+  return out;
+}
+
+function toObjects(matrix) {
+  if (!matrix.length) return [];
+  const head = matrix[0].map(h => h.trim());
+  return matrix.slice(1)
+    .filter(r => r.some(c => c !== ''))
+    .map(r => { const o = {}; head.forEach((h, i) => o[h] = (r[i] || '').trim()); return o; });
+}
+
+async function load() {
+  const url = document.getElementById('csv').value.trim();
+  const st = document.getElementById('status');
+  if (!url) { st.className = 'status err'; st.textContent = 'Paste the published CSV link first.'; return; }
+
+  try { localStorage.setItem(LS_KEY, url); } catch (e) {}
+  st.className = 'status'; st.textContent = 'Loading...';
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    rows = toObjects(parseCSV(await res.text()));
+    st.textContent = rows.length + ' submissions loaded.';
+    buildFilter(); render();
+  } catch (err) {
+    st.className = 'status err';
+    st.textContent = 'Could not load. Check that the sheet is published to the web as CSV.';
+  }
+}
+
+function buildFilter() {
+  const sel = document.getElementById('filter');
+  const classes = [...new Set(rows.map(r => r.classCode).filter(Boolean))].sort();
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All classes</option>' +
+    classes.map(c => '<option value="' + esc(c) + '">' + esc(c) + '</option>').join('');
+  sel.value = cur;
+}
+
+function visible() {
+  const f = document.getElementById('filter').value;
+  return f ? rows.filter(r => r.classCode === f) : rows;
+}
+
+function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+function render() {
+  const data = visible();
+
+  /* summary */
+  const revisions = data.map(r => num(r.mixResets) + num(r.canvasClears));
+  const avgRev = data.length ? (revisions.reduce((a, b) => a + b, 0) / data.length).toFixed(1) : '0';
+  const avgMin = data.length ? (data.reduce((a, r) => a + num(r.totalSeconds), 0) / data.length / 60).toFixed(1) : '0';
+  const walked = data.filter(r => num(r.walkAways) > 0).length;
+  const blank  = data.filter(r => String(r.drawingBlank).toLowerCase() === 'true').length;
+
+  document.getElementById('stats').innerHTML = [
+    ['Galleries', data.length],
+    ['Avg revisions', avgRev],
+    ['Avg minutes', avgMin],
+    ['Walked away and came back', walked],
+    ['Blank canvases', blank]
+  ].map(([k, n]) => '<div class="stat"><div class="n">' + esc(n) + '</div><div class="k">' + esc(k) + '</div></div>').join('');
+
+  distribution('dist-idea', data, 'idea', IDEA_LABEL);
+  distribution('dist-mine', data, 'mostLikeMe', MINE_LABEL);
+
+  /* cards */
+  document.getElementById('grid').innerHTML = data.map(r => {
+    const rev = num(r.mixResets) + num(r.canvasClears);
+    const png = r.drawingPng && r.drawingPng.indexOf('data:image') === 0;
+    return '<div class="card">' +
+      '<div class="thumb">' + (png
+          ? '<img src="' + esc(r.drawingPng) + '" alt="student drawing">'
+          : '<span class="none">drawing not stored</span>') + '</div>' +
+      '<div class="body">' +
+        '<div class="who"><span class="seat">' + esc(r.classCode) + ' &middot; ' + esc(r.seat) + '</span>' +
+          '<span class="time">' + esc((r.submittedAt || '').slice(0, 16).replace('T', ' ')) + '</span></div>' +
+        (r.galleryName
+          ? '<div class="galname">' + esc(r.galleryName) + '</div>'
+          : '<div class="galname empty">untitled</div>') +
+        '<span class="idea">' + esc(IDEA_LABEL[r.idea] || r.ideaLabel || 'no idea recorded') + '</span>' +
+        '<div class="made">' +
+          '<span class="dot" style="background:' + esc(r.colourHex || '#FFF') + '"></span>' +
+          esc(r.colourA) + ' + ' + esc(r.colourB) + ' &rarr; ' + esc(r.colourResult) +
+          ' &nbsp;&middot;&nbsp; ' + esc(r.shape) +
+        '</div>' +
+        '<div class="rline">' +
+          'Most like them: <b>' + esc(MINE_LABEL[r.mostLikeMe] || '-') + '</b><br>' +
+          'Shape choice: ' + esc(SHAPE_WHY[r.reflectShape] || '-') + '<br>' +
+          'From their idea: ' + esc(DRAW_LABEL[r.reflectDraw] || '-') + '<br>' +
+          'Revisions: ' + rev + ' &middot; ' + Math.round(num(r.totalSeconds) / 60) + ' min' +
+        '</div>' +
+        (rev === 0 && num(r.strokes) <= 1 ? '<div class="flag">finished without changing anything</div>' : '') +
+      '</div></div>';
+  }).join('') || '<p class="status">No submissions yet.</p>';
+}
+
+function distribution(target, data, field, labels) {
+  const counts = {};
+  data.forEach(r => { const k = r[field] || 'unanswered'; counts[k] = (counts[k] || 0) + 1; });
+  const max = Math.max(1, ...Object.values(counts));
+  document.getElementById(target).innerHTML = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, n]) =>
+      '<div class="dist-row"><span>' + esc(labels[k] || k) + '</span>' +
+      '<span class="track"><span class="fill" style="width:' + (n / max * 100) + '%"></span></span>' +
+      '<span class="cnt">' + n + '</span></div>').join('') || '<span class="status">No data yet.</span>';
+}
+
+document.getElementById('load').onclick = load;
+document.getElementById('refresh').onclick = load;
+document.getElementById('filter').onchange = render;
+
+try {
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) { document.getElementById('csv').value = saved; load(); }
+} catch (e) {}
+</script>
+</body>
+</html>
