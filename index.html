@@ -5,1045 +5,1132 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Art Adventure: My Own View</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none;
-    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Fredoka One', cursive, sans-serif; }
-body, html { width: 100%; height: 100%; overflow: hidden; background: #87CEEB; }
-#game-container { position: absolute; inset: 0; z-index: 1; }
+:root{
+  --paper:#FBFAF7; --wall:#F1EEE8; --ink:#15140F; --muted:#78736A;
+  --rule:#DAD4C8; --accent:#3B2E7E; --accent-soft:#EDEAF6; --live:#0F6B4F;
+  --sans: ui-sans-serif,"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body,html{width:100%;height:100%;overflow:hidden;background:#87CEEB;
+  font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;
+  user-select:none;-webkit-user-select:none}
+#game-container{position:absolute;inset:0;z-index:1}
+
+/* ---------- type ---------- */
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.title{font-size:25px;line-height:1.15;letter-spacing:-.02em;font-weight:600}
+.body{font-size:16px;line-height:1.62;color:var(--muted)}
+.body strong{color:var(--ink);font-weight:600}
+.rule{height:1px;background:var(--rule);width:100%}
 
 /* ---------- HUD ---------- */
-#ui-layer { position: absolute; inset: 0; z-index: 10; pointer-events: none;
-    display: flex; flex-direction: column; justify-content: space-between; padding: 20px; }
-.hud-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.score-card { background: rgba(255,255,255,.88); padding: 10px 20px; border-radius: 50px;
-    border: 4px solid #FF6B6B; box-shadow: 0 8px 0 rgba(0,0,0,.15); font-size: 20px;
-    color: #2D3436; font-weight: bold; display: flex; align-items: center; gap: 8px; }
-.idea-card-hud { background: #FFEAA7; padding: 8px 18px; border-radius: 30px; border: 4px solid #FDCB6E;
-    font-size: 16px; color: #D63031; font-weight: bold; box-shadow: 0 6px 0 rgba(0,0,0,.1);
-    max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.controls-hint { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-    background: rgba(255,255,255,.9); padding: 10px 25px; border-radius: 20px; border: 3px solid #74B9FF;
-    font-size: 15px; color: #0984E3; font-weight: bold; box-shadow: 0 4px 0 rgba(0,0,0,.1); }
+#ui-layer{position:absolute;inset:0;z-index:10;pointer-events:none;
+  display:flex;flex-direction:column;justify-content:space-between;padding:16px}
+.hud{display:flex;justify-content:space-between;align-items:stretch;gap:8px}
+.tag{background:rgba(251,250,247,.94);border:1px solid var(--rule);border-radius:3px;
+  padding:8px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tag .k{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tag .v{font-size:15px;font-weight:600;letter-spacing:-.01em;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.hint{align-self:center;background:rgba(251,250,247,.9);border:1px solid var(--rule);border-radius:3px;
+  padding:7px 16px;font-size:12px;letter-spacing:.04em;color:var(--muted)}
 
-/* ---------- shared card / button ---------- */
-.card { position: relative; background: #FFF; width: 92%; max-width: 620px; max-height: 92vh;
-    overflow-y: auto; border-radius: 30px; border: 8px solid #6C5CE7; padding: 28px 24px 24px;
-    text-align: center; box-shadow: 0 15px 0 rgba(0,0,0,.2); display: flex; flex-direction: column;
-    align-items: center; gap: 14px; }
-.title { font-size: 26px; color: #6C5CE7; }
-.desc { font-size: 16px; color: #636E72; line-height: 1.6; }
-.feedback { min-height: 24px; font-size: 16px; font-weight: bold; color: #00B894; }
-.btn { background: #00B894; color: #FFF; border: none; padding: 12px 26px; font-size: 18px;
-    font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #00896C; }
-.btn.secondary { background: #A29BFE; box-shadow: 0 6px 0 #6C5CE7; }
-.btn.ghost { background: #FFF; color: #636E72; border: 3px solid #B2BEC3; box-shadow: 0 5px 0 #DFE6E9; font-size: 15px; padding: 9px 18px; }
-.btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #00896C; }
-.btn:disabled { opacity: .45; cursor: default; }
-.row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-.close-btn { position: absolute; top: 12px; right: 14px; width: 40px; height: 40px; border-radius: 50%;
-    border: 3px solid #B2BEC3; background: #FFF; color: #636E72; font-size: 18px; font-weight: bold; cursor: pointer; }
+/* ---------- surfaces ---------- */
+.panel{position:relative;background:var(--paper);border:1px solid var(--rule);border-radius:4px;
+  width:100%;max-width:560px;max-height:92vh;overflow-y:auto;padding:26px 26px 24px;
+  display:flex;flex-direction:column;gap:16px;
+  animation:rise .28s cubic-bezier(.2,.7,.3,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.panel{animation:none}}
+.panel .head{display:flex;flex-direction:column;gap:7px}
+.center{text-align:center;align-items:center}
 
-/* ---------- full screens ---------- */
-.screen { position: absolute; inset: 0; z-index: 200; background: rgba(45,52,54,.72);
-    backdrop-filter: blur(6px); display: none; justify-content: center; align-items: center; padding: 16px; }
-.screen.active { display: flex; }
+/* ---------- controls ---------- */
+.btn{font-family:var(--sans);font-size:16px;font-weight:600;letter-spacing:.01em;
+  min-height:52px;padding:0 26px;border-radius:4px;border:1px solid var(--ink);
+  background:var(--ink);color:var(--paper);cursor:pointer;transition:opacity .15s}
+.btn:hover{opacity:.86}
+.btn.alt{background:transparent;color:var(--ink);border-color:var(--rule)}
+.btn.quiet{background:transparent;color:var(--muted);border-color:transparent;
+  min-height:44px;font-size:14px;text-decoration:underline;text-underline-offset:3px;padding:0 10px}
+.btn:disabled{opacity:.3;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center}
+.close{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:3px;
+  border:1px solid var(--rule);background:transparent;color:var(--muted);cursor:pointer;
+  font-size:16px;line-height:1}
+.field{display:flex;flex-direction:column;gap:6px}
+.field .k{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600}
+input[type=text]{font-family:var(--sans);font-size:18px;padding:12px 14px;border:1px solid var(--rule);
+  border-radius:3px;background:#FFF;color:var(--ink);width:130px;
+  user-select:text;-webkit-user-select:text}
+input[type=text].wide{width:270px;max-width:100%}
+input[type=text]:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.note{font-size:13px;color:var(--muted);min-height:19px;line-height:1.5}
+.note.warn{color:#A6402A}
+.note.good{color:var(--live)}
 
-.field { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-.field label { font-size: 14px; color: #636E72; font-weight: bold; }
-input[type=text] { font-size: 20px; padding: 10px 14px; border: 3px solid #DFE6E9; border-radius: 14px;
-    width: 150px; text-align: center; user-select: text; -webkit-user-select: text; }
-input[type=text].wide { width: 250px; }
+/* ---------- selectable options ---------- */
+.grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+@media(max-width:520px){.grid6{grid-template-columns:repeat(2,1fr)}}
+.pick{background:transparent;border:1px solid var(--rule);border-radius:4px;cursor:pointer;
+  display:flex;align-items:center;gap:12px;padding:14px;text-align:left;
+  font-family:var(--sans);font-size:15px;color:var(--ink);min-height:56px;transition:border-color .15s,background .15s}
+.pick:hover{border-color:var(--ink)}
+.pick.on{border-color:var(--accent);background:var(--accent-soft)}
+.pick.col{flex-direction:column;align-items:flex-start;gap:9px;font-size:13.5px;line-height:1.35}
+.pick svg{flex:0 0 auto;stroke:var(--ink);fill:none;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round}
+.pick.on svg{stroke:var(--accent)}
+.stack{display:flex;flex-direction:column;gap:9px;width:100%}
 
-/* idea cards */
-.idea-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; }
-.idea-opt { background: #F7F5FF; border: 4px solid #DFE6E9; border-radius: 20px; padding: 14px 8px;
-    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.idea-opt .emo { font-size: 32px; }
-.idea-opt .lbl { font-size: 13px; color: #2D3436; font-weight: bold; line-height: 1.3; }
-.idea-opt.picked { border-color: #6C5CE7; background: #EDE9FF; }
-@media (max-width: 520px) { .idea-grid { grid-template-columns: repeat(2, 1fr); } }
+/* ---------- colour lab ---------- */
+.mix{display:flex;align-items:center;justify-content:center;gap:12px}
+.mix .op{font-size:15px;color:var(--muted)}
+.disc{width:62px;height:62px;border-radius:50%;border:1px solid var(--rule);background:#FFF;
+  transition:background-color .3s}
+.pots{display:flex;gap:16px;justify-content:center}
+.pot{width:60px;height:60px;border-radius:50%;border:1px solid var(--rule);cursor:pointer;
+  transition:transform .12s}
+.pot:active{transform:scale(.93)}
+.swatches{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+.sw{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer}
+.sw .disc{width:70px;height:70px}
+.sw .cap{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.sw.on .disc{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sw.on .cap{color:var(--accent)}
 
-/* reflection options */
-.opt-list { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.opt { background: #F7F5FF; border: 4px solid #DFE6E9; border-radius: 16px; padding: 12px;
-    font-size: 16px; color: #2D3436; font-weight: bold; cursor: pointer; }
-.opt.picked { border-color: #6C5CE7; background: #EDE9FF; }
-.swatch-row { display: flex; gap: 14px; justify-content: center; }
-.swatch { width: 74px; height: 74px; border-radius: 50%; border: 5px solid #DFE6E9; cursor: pointer; }
-.swatch.picked { border-color: #6C5CE7; transform: scale(1.08); }
+/* ---------- shapes ---------- */
+.shapes{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.shape{width:78px;height:78px;border:1px solid var(--rule);border-radius:4px;background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s}
+.shape:hover{border-color:var(--ink)}
+.shape svg{fill:var(--ink)}
 
-/* gallery tiles */
-.tiles { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.tile { width: 150px; border: 4px solid #DFE6E9; border-radius: 18px; padding: 10px; cursor: pointer;
-    background: #FFF; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.tile.picked { border-color: #6C5CE7; background: #F7F5FF; }
-.tile .cap { font-size: 13px; color: #636E72; font-weight: bold; }
-.tile .swatch-mini { width: 54px; height: 54px; border-radius: 50%; border: 3px solid #DFE6E9; }
-.tile .glyph { font-size: 42px; }
-.tile img { width: 100%; border-radius: 10px; border: 2px solid #DFE6E9; }
-.status { font-size: 14px; color: #636E72; }
-.status.warn { color: #E17055; }
+/* ---------- canvas ---------- */
+#paint-canvas{background:#FFF;border:1px solid var(--rule);border-radius:3px;
+  touch-action:none;cursor:crosshair;max-width:100%}
+.palette{display:flex;gap:10px;justify-content:center}
+.pen{width:34px;height:34px;border-radius:50%;border:1px solid var(--rule);cursor:pointer}
+.pen.on{box-shadow:0 0 0 3px var(--accent-soft);border-color:var(--accent)}
 
-/* ---------- station modals ---------- */
-.modal { position: absolute; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(5px);
-    display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0;
-    pointer-events: none; transition: opacity .3s ease; padding: 16px; }
-.modal.active { opacity: 1; pointer-events: auto; }
-.color-pots { display: flex; gap: 14px; justify-content: center; }
-.color-pot { width: 58px; height: 58px; border-radius: 50%; border: 4px solid #FFF;
-    box-shadow: 0 5px 0 rgba(0,0,0,.2); cursor: pointer; }
-.color-pot:active { transform: scale(.9); }
-.mix-preview-box { display: flex; align-items: center; gap: 12px; }
-.color-circle { width: 64px; height: 64px; border-radius: 50%; border: 4px solid #DFE6E9;
-    box-shadow: inset 0 4px 8px rgba(0,0,0,.1); transition: background-color .3s; }
-.shape-grid { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-.shape-btn { width: 76px; height: 76px; background: #FFEAA7; border: 4px solid #FDCB6E; border-radius: 20px;
-    display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 34px;
-    box-shadow: 0 6px 0 #E1B12C; }
-.shape-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #E1B12C; }
-#paint-canvas { background: #FFF; border: 4px dashed #B2BEC3; border-radius: 15px; cursor: crosshair;
-    touch-action: none; max-width: 100%; }
-.palette { display: flex; gap: 9px; }
-.palette-btn { width: 34px; height: 34px; border-radius: 50%; border: 3px solid #FFF;
-    box-shadow: 0 3px 0 rgba(0,0,0,.2); cursor: pointer; }
-.palette-btn.selected { transform: scale(1.2); border-color: #2D3436; }
+/* ---------- wall labels (signature element) ---------- */
+.labels{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;width:100%}
+.label{flex:1 1 152px;max-width:172px;border:1px solid var(--rule);border-radius:3px;
+  background:#FFF;padding:0 0 12px;cursor:pointer;text-align:left;
+  display:flex;flex-direction:column;transition:border-color .15s}
+.label:hover{border-color:var(--ink)}
+.label.on{border-color:var(--accent);background:var(--accent-soft)}
+.label .plate{height:96px;display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--rule);background:var(--wall)}
+.label.on .plate{background:#FFF}
+.label .plate img{width:100%;height:100%;object-fit:contain}
+.label .plate .disc{width:52px;height:52px}
+.label .plate svg{fill:var(--ink)}
+.label .txt{padding:10px 12px 0;display:flex;flex-direction:column;gap:3px}
+.label .t{font-size:13.5px;font-weight:600;line-height:1.25}
+.label .m{font-size:11px;color:var(--muted);line-height:1.4}
+
+/* ---------- screens & modals ---------- */
+.screen,.modal{position:absolute;inset:0;z-index:100;display:none;
+  align-items:center;justify-content:center;padding:16px;
+  background:rgba(21,20,15,.42);backdrop-filter:blur(3px)}
+.screen{z-index:200}
+.screen.on,.modal.on{display:flex}
 
 /* ---------- beacons ---------- */
-.quest-beacon { position: absolute; pointer-events: none; display: flex; flex-direction: column;
-    align-items: center; transform: translate(-50%, -100%); }
-.quest-beacon-icon { font-size: 28px; animation: bounce 1s infinite alternate ease-in-out; }
-.quest-beacon-text { background: #6C5CE7; color: #FFF; padding: 4px 12px; border-radius: 12px;
-    font-size: 12px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 6px rgba(0,0,0,.2); }
-.quest-beacon-text.done { background: #00B894; }
-@keyframes bounce { 0% { transform: translateY(0);} 100% { transform: translateY(-10px);} }
-@media (prefers-reduced-motion: reduce) { .quest-beacon-icon { animation: none; } }
+.beacon{position:absolute;pointer-events:none;transform:translate(-50%,-100%);
+  display:flex;flex-direction:column;align-items:center;gap:5px}
+.beacon .mark{width:9px;height:9px;border-radius:50%;background:var(--paper);
+  border:1px solid var(--ink);animation:pulse 2.4s infinite ease-in-out}
+.beacon .lab{background:rgba(251,250,247,.95);border:1px solid var(--rule);border-radius:3px;
+  padding:4px 10px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:600;white-space:nowrap}
+.beacon.done .mark{background:var(--live);border-color:var(--live);animation:none}
+.beacon.done .lab{color:var(--live)}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.beacon .mark{animation:none}}
 
-#confetti-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 101; }
+#drift{position:absolute;inset:0;pointer-events:none;z-index:101}
 
-/* ---------- touch pad ---------- */
-#touch-controls { position: absolute; bottom: 20px; left: 20px; display: none; gap: 10px; z-index: 15; pointer-events: auto; }
-.dpad-btn { width: 58px; height: 58px; background: rgba(255,255,255,.85); border: 3px solid #6C5CE7;
-    border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 22px;
-    color: #6C5CE7; font-weight: bold; touch-action: manipulation; }
-@media (max-width: 768px) {
-    #touch-controls { display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(2, 58px); }
-    .controls-hint { display: none; }
-    .score-card, .idea-card-hud { font-size: 14px; padding: 7px 13px; }
-    .title { font-size: 22px; }
+/* ---------- dpad ---------- */
+#pad{position:absolute;bottom:16px;left:16px;display:none;gap:8px;z-index:15;pointer-events:auto}
+.dbtn{width:56px;height:56px;background:rgba(251,250,247,.9);border:1px solid var(--rule);
+  border-radius:3px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;color:var(--ink);touch-action:manipulation}
+@media(max-width:768px){
+  #pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px)}
+  .hint{display:none}
+  .panel{padding:22px 18px 20px}
+  .title{font-size:22px}
 }
 </style>
 </head>
 <body>
 
 <div id="game-container"></div>
-<canvas id="confetti-canvas"></canvas>
+<canvas id="drift"></canvas>
 
 <div id="ui-layer">
-    <div class="hud-header">
-        <div class="score-card"><span>🎨 Artworks made</span><span id="work-count">0 / 3</span></div>
-        <div class="idea-card-hud" id="idea-hud">🌈 Rainbow Island</div>
-    </div>
-    <div class="controls-hint">Use the <b>arrow keys</b> or <b>WASD</b> to walk. Step up to an easel to start creating 🖌️</div>
-    <div id="touch-controls">
-        <div></div><div class="dpad-btn" id="btn-up">▲</div><div></div>
-        <div class="dpad-btn" id="btn-left">◀</div><div class="dpad-btn" id="btn-down">▼</div><div class="dpad-btn" id="btn-right">▶</div>
-    </div>
+  <div class="hud">
+    <div class="tag"><span class="k">Artworks</span><span class="v" id="work-count">0 / 3</span></div>
+    <div class="tag" style="text-align:right"><span class="k">Your idea</span><span class="v" id="idea-hud">Not chosen yet</span></div>
+  </div>
+  <div class="hint">Arrow keys or WASD to walk &middot; step up to an easel to begin</div>
+  <div id="pad">
+    <div></div><div class="dbtn" id="btn-up">&#9650;</div><div></div>
+    <div class="dbtn" id="btn-left">&#9664;</div><div class="dbtn" id="btn-down">&#9660;</div><div class="dbtn" id="btn-right">&#9654;</div>
+  </div>
 </div>
 
-<div id="beacons-container"></div>
+<div id="beacons"></div>
 
-<!-- ============ SCREEN 0: who is playing ============ -->
-<div class="screen active" id="screen-start">
-    <div class="card">
-        <h1 class="title">🎨 Art Adventure</h1>
-        <p class="desc">Make three artworks on Rainbow Island.<br>Nothing here is right or wrong.</p>
-        <p class="desc" style="font-size:14px;">Type your class code and seat number.<br>Do not type your name.</p>
-        <div class="row" style="align-items:flex-end;">
-            <div class="field"><label>Class</label><input type="text" id="in-class" maxlength="6" placeholder="4A"></div>
-            <div class="field"><label>Seat no.</label><input type="text" id="in-seat" maxlength="4" placeholder="17"></div>
-        </div>
-        <p class="feedback" id="start-feedback"></p>
-        <div class="row">
-            <button class="btn" id="btn-begin">Start</button>
-            <button class="btn secondary" id="btn-resume" style="display:none;">Continue my work</button>
-        </div>
+<!-- ===== boot failure ===== -->
+<div class="screen" id="screen-boot">
+  <div class="panel">
+    <div class="head">
+      <span class="eyebrow">Cannot start</span>
+      <h2 class="title">The 3D library did not load</h2>
     </div>
+    <div class="rule"></div>
+    <p class="body" id="boot-msg"></p>
+    <p class="body" style="font-size:14px">This usually means the network blocked
+      <code>cdnjs.cloudflare.com</code>. Download <code>three.min.js</code>, put it next to this
+      page, and change the script tag to <code>src="./three.min.js"</code>.</p>
+    <button class="btn alt" onclick="location.reload()">Try again</button>
+  </div>
 </div>
 
-<!-- ============ SCREEN 1: idea layer ============ -->
+<!-- ===== start ===== -->
+<div class="screen on" id="screen-start">
+  <div class="panel center">
+    <div class="head center">
+      <span class="eyebrow">Rainbow Island</span>
+      <h1 class="title">Art Adventure</h1>
+    </div>
+    <div class="rule"></div>
+    <p class="body">Make three artworks. Nothing here is right or wrong.<br>
+      Enter your class and seat number. Do not enter your name.</p>
+    <div class="row" style="align-items:flex-end">
+      <div class="field"><span class="k">Class</span><input type="text" id="in-class" maxlength="6" placeholder="4A"></div>
+      <div class="field"><span class="k">Seat</span><input type="text" id="in-seat" maxlength="4" placeholder="17"></div>
+    </div>
+    <p class="note" id="start-note"></p>
+    <div class="row">
+      <button class="btn" id="btn-begin">Begin</button>
+      <button class="btn alt" id="btn-resume" style="display:none">Continue my work</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== idea layer ===== -->
 <div class="screen" id="screen-idea">
-    <div class="card">
-        <h2 class="title">💭 What do you want to say today?</h2>
-        <p class="desc">Pick one idea first. No drawing yet.<br>Everything you make today can come from this.</p>
-        <div class="idea-grid" id="idea-grid"></div>
-        <button class="btn" id="btn-idea-go" disabled>This is my idea</button>
+  <div class="panel">
+    <div class="head">
+      <span class="eyebrow">Before you begin</span>
+      <h2 class="title">What do you want to say today?</h2>
     </div>
+    <div class="rule"></div>
+    <p class="body">Choose one idea first. No drawing yet. Everything you make can come from this.</p>
+    <div class="grid6" id="idea-grid"></div>
+    <button class="btn" id="btn-idea-go" disabled>This is my idea</button>
+  </div>
 </div>
 
-<!-- ============ reflection prompt ============ -->
+<!-- ===== reflection ===== -->
 <div class="modal" id="modal-reflect">
-    <div class="card" style="border-color:#00B894;">
-        <h2 class="title" style="color:#00B894;" id="reflect-q">Question</h2>
-        <p class="desc" id="reflect-sub"></p>
-        <div id="reflect-body" style="width:100%;"></div>
-        <button class="btn" id="btn-reflect-go" disabled>Next</button>
+  <div class="panel">
+    <div class="head">
+      <span class="eyebrow">One question</span>
+      <h2 class="title" id="reflect-q"></h2>
     </div>
+    <p class="body" id="reflect-sub"></p>
+    <div class="rule"></div>
+    <div id="reflect-body"></div>
+    <button class="btn" id="btn-reflect-go" disabled>Continue</button>
+  </div>
 </div>
 
-<!-- ============ SCREEN 2: gallery + closing reflection ============ -->
+<!-- ===== gallery ===== -->
 <div class="screen" id="screen-gallery">
-    <div class="card">
-        <h2 class="title">🖼️ Your gallery is open</h2>
-        <p class="desc">Three artworks, all made from your idea.<br><b id="gal-idea"></b></p>
-        <p class="desc" style="font-size:15px;"><b>Which one is most like you?</b></p>
-        <div class="tiles" id="gal-tiles"></div>
-        <div class="field" style="align-items:center;">
-            <label>Give your gallery a name</label>
-            <input type="text" id="in-galname" class="wide" maxlength="24" placeholder="My colourful day">
-        </div>
-        <button class="btn" id="btn-submit" disabled>Show my teacher</button>
-        <p class="status" id="submit-status"></p>
+  <div class="panel">
+    <div class="head">
+      <span class="eyebrow">Now on view</span>
+      <h2 class="title">Your gallery</h2>
     </div>
+    <div class="rule"></div>
+    <p class="body">Three works, all from your idea: <strong id="gal-idea"></strong><br>
+      Which one is most like you?</p>
+    <div class="labels" id="gal-labels"></div>
+    <div class="field">
+      <span class="k">Title of the exhibition</span>
+      <input type="text" id="in-galname" class="wide" maxlength="24" placeholder="My colourful day">
+    </div>
+    <button class="btn" id="btn-submit" disabled>Show my teacher</button>
+    <p class="note" id="submit-note"></p>
+  </div>
 </div>
 
-<!-- ============ SCREEN 3: done ============ -->
+<!-- ===== done ===== -->
 <div class="screen" id="screen-done">
-    <div class="card">
-        <h2 class="title">🌟 All done 🌟</h2>
-        <p class="desc" id="done-line"></p>
-        <div style="font-size:60px;">🖼️🎨✨</div>
-        <p class="status" id="done-status"></p>
-        <div class="row">
-            <button class="btn secondary" id="btn-download">Save my drawing</button>
-            <button class="btn" id="btn-again">Play again</button>
-        </div>
-        <button class="btn ghost" id="btn-switch">Next student</button>
+  <div class="panel center">
+    <div class="head center">
+      <span class="eyebrow">Exhibition open</span>
+      <h2 class="title" id="done-title">All done</h2>
     </div>
+    <div class="rule"></div>
+    <p class="body" id="done-line"></p>
+    <div class="labels" id="done-labels"></div>
+    <p class="note" id="done-note"></p>
+    <div class="row">
+      <button class="btn alt" id="btn-download">Save my drawing</button>
+      <button class="btn" id="btn-again">Play again</button>
+    </div>
+    <button class="btn quiet" id="btn-switch">Next student</button>
+  </div>
 </div>
 
-<!-- ============ station 1: colour ============ -->
+<!-- ===== station 1 ===== -->
 <div class="modal" id="modal-color">
-    <div class="card">
-        <button class="close-btn" onclick="closeChallenge()" aria-label="Leave this easel">✕</button>
-        <h2 class="title">🎨 Colour Mixing Lab</h2>
-        <p class="desc">Pick two different colours and see what they make.<br>There is no single right answer.</p>
-        <div class="mix-preview-box">
-            <div class="color-circle" id="mix-slot-1"></div><span style="font-size:22px;font-weight:bold;">+</span>
-            <div class="color-circle" id="mix-slot-2"></div><span style="font-size:22px;font-weight:bold;">=</span>
-            <div class="color-circle" id="mix-result" style="background:#EEE;"></div>
-        </div>
-        <div class="color-pots">
-            <div class="color-pot" style="background:#FF7675;" onclick="selectMixColor('#FF7675','red')"></div>
-            <div class="color-pot" style="background:#74B9FF;" onclick="selectMixColor('#74B9FF','blue')"></div>
-            <div class="color-pot" style="background:#FFEAA7;" onclick="selectMixColor('#FFEAA7','yellow')"></div>
-        </div>
-        <p class="feedback" id="color-feedback"></p>
-        <button class="btn secondary" onclick="resetColorMix()">Try another mix</button>
+  <div class="panel">
+    <button class="close" onclick="closeChallenge()" aria-label="Leave this easel">&#10005;</button>
+    <div class="head">
+      <span class="eyebrow">Station &middot; Mixing lab</span>
+      <h2 class="title">Two colours make a third</h2>
     </div>
+    <div class="rule"></div>
+    <p class="body">Pick two different colours and see what they make. There is no single right answer.</p>
+    <div class="mix">
+      <div class="disc" id="mix-1"></div><span class="op">+</span>
+      <div class="disc" id="mix-2"></div><span class="op">=</span>
+      <div class="disc" id="mix-r"></div>
+    </div>
+    <div class="pots">
+      <div class="pot" style="background:#D8544F" onclick="selectMixColor('#D8544F','red')"></div>
+      <div class="pot" style="background:#3E6FD0" onclick="selectMixColor('#3E6FD0','blue')"></div>
+      <div class="pot" style="background:#E8C33F" onclick="selectMixColor('#E8C33F','yellow')"></div>
+    </div>
+    <p class="note" id="color-note"></p>
+    <button class="btn alt" onclick="resetColorMix()">Try another mix</button>
+  </div>
 </div>
 
-<!-- ============ station 2: shape ============ -->
+<!-- ===== station 2 ===== -->
 <div class="modal" id="modal-shape">
-    <div class="card">
-        <button class="close-btn" onclick="closeChallenge()" aria-label="Leave this easel">✕</button>
-        <h2 class="title">📐 Shape Workshop</h2>
-        <p class="desc">Choose a shape to add to your artwork.<br>Any shape works. This is your picture.</p>
-        <div class="shape-grid">
-            <div class="shape-btn" onclick="pickShape('circle','⚪')">⚪</div>
-            <div class="shape-btn" onclick="pickShape('star','⭐')">⭐</div>
-            <div class="shape-btn" onclick="pickShape('square','🟦')">🟦</div>
-            <div class="shape-btn" onclick="pickShape('triangle','🔺')">🔺</div>
-        </div>
-        <p class="feedback" id="shape-feedback"></p>
+  <div class="panel">
+    <button class="close" onclick="closeChallenge()" aria-label="Leave this easel">&#10005;</button>
+    <div class="head">
+      <span class="eyebrow">Station &middot; Shape workshop</span>
+      <h2 class="title">Choose a shape for your work</h2>
     </div>
+    <div class="rule"></div>
+    <p class="body">Any shape works. This is your picture.</p>
+    <div class="shapes" id="shape-row"></div>
+    <p class="note" id="shape-note"></p>
+  </div>
 </div>
 
-<!-- ============ station 3: drawing ============ -->
+<!-- ===== station 3 ===== -->
 <div class="modal" id="modal-draw">
-    <div class="card">
-        <button class="close-btn" onclick="closeChallenge()" aria-label="Leave this easel">✕</button>
-        <h2 class="title">🖌️ Draw what you want to say</h2>
-        <p class="desc" id="draw-idea-hint"></p>
-        <canvas id="paint-canvas" width="320" height="220"></canvas>
-        <div class="palette">
-            <div class="palette-btn selected" style="background:#FF7675;" onclick="setPaintColor('#FF7675',this)"></div>
-            <div class="palette-btn" style="background:#74B9FF;" onclick="setPaintColor('#74B9FF',this)"></div>
-            <div class="palette-btn" style="background:#55E6C1;" onclick="setPaintColor('#55E6C1',this)"></div>
-            <div class="palette-btn" style="background:#FFEAA7;" onclick="setPaintColor('#FFEAA7',this)"></div>
-            <div class="palette-btn" style="background:#A29BFE;" onclick="setPaintColor('#A29BFE',this)"></div>
-            <div class="palette-btn" style="background:#2D3436;" onclick="setPaintColor('#2D3436',this)"></div>
-        </div>
-        <div class="row">
-            <button class="btn secondary" onclick="clearCanvas()">Start over</button>
-            <button class="btn" onclick="finishDrawing()">I am finished</button>
-        </div>
+  <div class="panel">
+    <button class="close" onclick="closeChallenge()" aria-label="Leave this easel">&#10005;</button>
+    <div class="head">
+      <span class="eyebrow">Station &middot; Drawing room</span>
+      <h2 class="title">Draw what you want to say</h2>
     </div>
+    <div class="rule"></div>
+    <p class="body" id="draw-hint"></p>
+    <canvas id="paint-canvas" width="360" height="240"></canvas>
+    <div class="palette" id="pen-row"></div>
+    <div class="row">
+      <button class="btn alt" onclick="clearCanvas()">Start over</button>
+      <button class="btn" onclick="finishDrawing()">I am finished</button>
+    </div>
+  </div>
 </div>
 
-<script src="./three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-/* =========================================================
-   CONFIG
-   Paste your Apps Script Web App URL between the quotes.
-   Leave it empty to run the game with local saving only.
-   ========================================================= */
-const APPS_SCRIPT_URL = 'const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSvwgbafDVies4-h77zpzccbJR85xcUvCmNsQqSQbNYYpntwVpK8RW33Lq_y-FkmIyHA/exec'';
+/* ============================================================
+   CONFIG - paste your Apps Script /exec URL between the quotes
+   ============================================================ */
+const APPS_SCRIPT_URL = '';
 
-/* ---------- safe storage (falls back to memory if blocked) ---------- */
-const Store = (function () {
-    let usable = true, mem = {};
-    try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); }
-    catch (e) { usable = false; }
-    return {
-        usable: usable,
-        get(k) { try { return usable ? localStorage.getItem(k) : (mem[k] ?? null); } catch (e) { return mem[k] ?? null; } },
-        set(k, v) { try { usable ? localStorage.setItem(k, v) : (mem[k] = v); } catch (e) { mem[k] = v; } },
-        del(k) { try { usable ? localStorage.removeItem(k) : delete mem[k]; } catch (e) { delete mem[k]; } }
-    };
+/* ---------- storage with safe fallback ---------- */
+const Store = (function(){
+  let ok = true, mem = {};
+  try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); } catch(e){ ok = false; }
+  return {
+    ok: ok,
+    get(k){ try{ return ok ? localStorage.getItem(k) : (mem[k] ?? null); }catch(e){ return mem[k] ?? null; } },
+    set(k,v){ try{ ok ? localStorage.setItem(k,v) : (mem[k]=v); }catch(e){ mem[k]=v; } },
+    del(k){ try{ ok ? localStorage.removeItem(k) : delete mem[k]; }catch(e){ delete mem[k]; } }
+  };
 })();
 const KEY = 'artadv:session';
 
-/* ---------- idea layer options ---------- */
-const IDEAS = [
-    { id: 'love',    emo: '❤️', label: 'Something I love' },
-    { id: 'place',   emo: '🏞️', label: 'A place I like' },
-    { id: 'feel',    emo: '😊', label: 'How I feel today' },
-    { id: 'imagine', emo: '🚀', label: 'Something I imagine' },
-    { id: 'person',  emo: '👪', label: 'Someone important' },
-    { id: 'bother',  emo: '🌧️', label: 'Something that bothers me' }
-];
-
-/* ---------- session data ---------- */
-let S = null;
-function newSession(classCode, seat) {
-    return {
-        v: 1, classCode: classCode, seat: seat,
-        idea: null, ideaLabel: null,
-        startedAt: new Date().toISOString(),
-        works: { color: null, shape: null, draw: null },
-        reflect: { color: null, shape: null, draw: null, mostLikeMe: null },
-        galleryName: '',
-        drawing: '',
-        log: { mixResets: 0, sameColourTries: 0, canvasClears: 0, strokes: 0,
-               walkAways: 0, order: [], seconds: {}, totalSeconds: 0 },
-        submitted: false
-    };
-}
-function saveSession() { if (S) Store.set(KEY, JSON.stringify(S)); }
-function loadSession() { try { return JSON.parse(Store.get(KEY)); } catch (e) { return null; } }
-
-/* ---------- three.js state ---------- */
-let scene, camera, renderer, player, paintbrush;
-const clock = new THREE.Clock();
-const activeKeys = {}, touchInputs = { up: 0, down: 0, left: 0, right: 0 };
-const easels = [];
-let worksDone = 0, activeChallenge = null, jumpTimer = 0, stationEnteredAt = 0;
-const TOTAL_WORKS = 3;
-
-/* ---------- station 1 state ---------- */
-let selectedColors = [];
-const MIX_TABLE = {
-    'blue|red':    { hex: '#A29BFE', name: 'purple' },
-    'red|yellow':  { hex: '#FFA502', name: 'orange' },
-    'blue|yellow': { hex: '#26DE81', name: 'green' }
+/* ---------- line icons ---------- */
+const I = {
+  love:'<path d="M12 20s-7-4.6-7-9.4A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.6C19 15.4 12 20 12 20Z"/>',
+  place:'<path d="M3 17l5-6 3.5 4L15 11l6 6"/><circle cx="8" cy="6.5" r="2.2"/>',
+  feel:'<circle cx="12" cy="12" r="8.2"/><path d="M9 14.2c.9.9 1.9 1.3 3 1.3s2.1-.4 3-1.3"/><path d="M9.2 9.6h.01M14.8 9.6h.01"/>',
+  imagine:'<path d="M12 3.5 13.9 9l5.6 1.6-4 4.2.6 5.7L12 18l-4.1 2.5.6-5.7-4-4.2L10.1 9Z"/>',
+  person:'<circle cx="8.5" cy="8.5" r="2.8"/><circle cx="16" cy="9.5" r="2.2"/><path d="M3.5 19c0-2.7 2.2-4.6 5-4.6s5 1.9 5 4.6"/><path d="M14.5 19c0-2.2 1.5-3.7 3.5-3.7s3 1.3 3 3.2"/>',
+  bother:'<path d="M7 13a3.6 3.6 0 0 1 .3-7.1A4.6 4.6 0 0 1 16 6.4 3.3 3.3 0 0 1 17 13Z"/><path d="M9 16.5l-1 3M13 16.5l-1 3M17 16.5l-1 3"/>'
 };
-const COLOR_EN = { red: 'Red', blue: 'Blue', yellow: 'Yellow' };
-const COLOR_HEX = { red: '#FF7675', blue: '#74B9FF', yellow: '#FFEAA7' };
+function icon(k, size){ return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24">'+I[k]+'</svg>'; }
 
-/* ---------- station 3 state ---------- */
-let paintColor = '#FF7675', isPainting = false, paintCtx, canvasTouched = false;
+const SHAPES = {
+  circle:  '<circle cx="18" cy="18" r="13"/>',
+  star:    '<path d="M18 3.5 22 13.6l10.8.7-8.3 7 2.6 10.5L18 26l-9.1 5.8L11.5 21.3l-8.3-7 10.8-.7Z"/>',
+  square:  '<rect x="5" y="5" width="26" height="26" rx="1.5"/>',
+  triangle:'<path d="M18 4 32 31H4Z"/>'
+};
+function shapeSVG(k, size){
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 36 36">'+SHAPES[k]+'</svg>';
+}
 
-/* =========================================================
-   BOOT
-   ========================================================= */
-window.addEventListener('load', () => {
-    init3DScene();
-    init2DPaintCanvas();
-    setupEventListeners();
-    buildIdeaGrid();
-    prepareStartScreen();
-    animate();
+/* ---------- content ---------- */
+const IDEAS = [
+  {id:'love',    label:'Something I love'},
+  {id:'place',   label:'A place I like'},
+  {id:'feel',    label:'How I feel today'},
+  {id:'imagine', label:'Something I imagine'},
+  {id:'person',  label:'Someone important'},
+  {id:'bother',  label:'Something that bothers me'}
+];
+const PENS = ['#D8544F','#3E6FD0','#2E9E7A','#E8C33F','#6B4FA8','#15140F'];
+const MIX_TABLE = {
+  'blue|red':   {hex:'#7B5EA8', name:'purple'},
+  'red|yellow': {hex:'#E08A3C', name:'orange'},
+  'blue|yellow':{hex:'#4E9B62', name:'green'}
+};
+const COLOR_EN  = {red:'Red', blue:'Blue', yellow:'Yellow'};
+const COLOR_HEX = {red:'#D8544F', blue:'#3E6FD0', yellow:'#E8C33F'};
+
+/* ---------- session ---------- */
+let S = null;
+function newSession(cls, seat){
+  return {v:2, classCode:cls, seat:seat, idea:null, ideaLabel:null,
+    startedAt:new Date().toISOString(),
+    works:{color:null, shape:null, draw:null},
+    reflect:{color:null, shape:null, draw:null, mostLikeMe:null},
+    galleryName:'', drawing:'',
+    log:{mixResets:0, sameColourTries:0, canvasClears:0, strokes:0, walkAways:0,
+         order:[], seconds:{}, totalSeconds:0},
+    submitted:false};
+}
+const saveSession = () => { if (S) Store.set(KEY, JSON.stringify(S)); };
+const loadSession = () => { try { return JSON.parse(Store.get(KEY)); } catch(e){ return null; } };
+
+/* ---------- three.js ---------- */
+let scene, camera, renderer, player, brush;
+const clock = new THREE.Clock(), keys = {}, pad = {up:0,down:0,left:0,right:0};
+const easels = [];
+let worksDone = 0, active = null, jump = 0, enteredAt = 0;
+const TOTAL = 3;
+
+let picked = [];
+let penColor = PENS[0], painting = false, pctx, touched = false;
+
+function bootFail(msg){
+  document.getElementById('boot-msg').textContent = msg;
+  document.querySelectorAll('.screen').forEach(x => x.classList.remove('on'));
+  document.getElementById('screen-boot').classList.add('on');
+}
+
+window.addEventListener('error', e => {
+  if (!document.getElementById('screen-boot').classList.contains('on'))
+    bootFail(e.message || 'An unexpected error stopped the page.');
 });
 
-function screenOpen() { return !!document.querySelector('.screen.active'); }
-function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    if (id) document.getElementById(id).classList.add('active');
+window.addEventListener('load', () => {
+  // UI first, so the interface never dies because of a failed library
+  try { initCanvas(); buildStatic(); prepareStart(); bindInput(); }
+  catch (err) { bootFail(String(err)); return; }
+
+  if (typeof THREE === 'undefined'){
+    bootFail('three.js could not be downloaded, so the island cannot be drawn.');
+    return;
+  }
+  try { initScene(); loop(); }
+  catch (err) { bootFail(String(err)); }
+});
+
+const screenOpen = () => !!document.querySelector('.screen.on');
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  if (id) document.getElementById(id).classList.add('on');
 }
+const openModal = id => document.getElementById(id).classList.add('on');
+const closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('on'));
 
-/* ---------- start screen ---------- */
-function prepareStartScreen() {
-    const saved = loadSession();
-    const resumeBtn = document.getElementById('btn-resume');
-
-    if (saved && !saved.submitted && saved.idea) {
-        resumeBtn.style.display = '';
-        document.getElementById('in-class').value = saved.classCode || '';
-        document.getElementById('in-seat').value = saved.seat || '';
-        resumeBtn.onclick = () => { S = saved; restoreProgress(); };
-    }
-    if (!Store.usable) {
-        document.getElementById('start-feedback').innerHTML =
-            '<span style="color:#E17055;font-size:13px;">Saving is off in this preview. Deploy the page to save work.</span>';
-    }
-
-    document.getElementById('btn-begin').onclick = () => {
-        const c = document.getElementById('in-class').value.trim().toUpperCase();
-        const s = document.getElementById('in-seat').value.trim();
-        const fb = document.getElementById('start-feedback');
-        if (!c || !s) { fb.style.color = '#E17055'; fb.innerText = 'Type both boxes to start.'; return; }
-        fb.innerText = '';
-        S = newSession(c, s);
-        saveSession();
-        showScreen('screen-idea');
+/* ============================================================
+   STATIC UI
+   ============================================================ */
+function buildStatic(){
+  const grid = document.getElementById('idea-grid');
+  IDEAS.forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'pick col';
+    b.innerHTML = icon(o.id, 26) + '<span>' + o.label + '</span>';
+    b.onclick = () => {
+      grid.querySelectorAll('.pick').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      S.idea = o.id; S.ideaLabel = o.label;
+      document.getElementById('btn-idea-go').disabled = false;
     };
-}
+    grid.appendChild(b);
+  });
 
-/* ---------- idea layer ---------- */
-function buildIdeaGrid() {
-    const grid = document.getElementById('idea-grid');
-    IDEAS.forEach(idea => {
-        const el = document.createElement('div');
-        el.className = 'idea-opt';
-        el.innerHTML = '<div class="emo">' + idea.emo + '</div><div class="lbl">' + idea.label + '</div>';
-        el.onclick = () => {
-            grid.querySelectorAll('.idea-opt').forEach(o => o.classList.remove('picked'));
-            el.classList.add('picked');
-            S.idea = idea.id; S.ideaLabel = idea.label; S.ideaEmo = idea.emo;
-            document.getElementById('btn-idea-go').disabled = false;
-        };
-        grid.appendChild(el);
-    });
+  const row = document.getElementById('shape-row');
+  Object.keys(SHAPES).forEach(k => {
+    const b = document.createElement('button');
+    b.className = 'shape';
+    b.setAttribute('aria-label', k);
+    b.innerHTML = shapeSVG(k, 40);
+    b.onclick = () => pickShape(k);
+    row.appendChild(b);
+  });
 
-    document.getElementById('btn-idea-go').onclick = () => {
-        saveSession();
-        applyIdeaToUI();
-        showScreen(null);
-        stationEnteredAt = performance.now();
+  const pens = document.getElementById('pen-row');
+  PENS.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'pen' + (i === 0 ? ' on' : '');
+    b.style.background = c;
+    b.setAttribute('aria-label', 'pen colour');
+    b.onclick = () => {
+      pens.querySelectorAll('.pen').forEach(x => x.classList.remove('on'));
+      b.classList.add('on'); penColor = c; pctx.strokeStyle = c;
     };
+    pens.appendChild(b);
+  });
+
+  document.getElementById('btn-idea-go').onclick = () => {
+    saveSession(); applyIdea(); show(null); enteredAt = performance.now();
+  };
 }
 
-function applyIdeaToUI() {
-    document.getElementById('idea-hud').innerText = (S.ideaEmo || '💭') + ' ' + S.ideaLabel;
-    document.getElementById('draw-idea-hint').innerHTML =
-        'Your idea: <b>' + S.ideaLabel + '</b><br>Draw it any way you like. It does not have to look like anything.';
+function prepareStart(){
+  const saved = loadSession(), rb = document.getElementById('btn-resume');
+  if (saved && !saved.submitted && saved.idea){
+    rb.style.display = '';
+    document.getElementById('in-class').value = saved.classCode || '';
+    document.getElementById('in-seat').value  = saved.seat || '';
+    rb.onclick = () => { S = saved; restore(); };
+  }
+  if (!Store.ok){
+    const n = document.getElementById('start-note');
+    n.className = 'note warn';
+    n.textContent = 'Saving is off in this preview. Deploy the page to save work.';
+  }
+  document.getElementById('btn-begin').onclick = () => {
+    const c = document.getElementById('in-class').value.trim().toUpperCase();
+    const s = document.getElementById('in-seat').value.trim();
+    const n = document.getElementById('start-note');
+    if (!c || !s){ n.className = 'note warn'; n.textContent = 'Fill in both boxes to begin.'; return; }
+    n.textContent = ''; n.className = 'note';
+    S = newSession(c, s); saveSession(); show('screen-idea');
+  };
 }
 
-function restoreProgress() {
-    applyIdeaToUI();
-    ['color', 'shape', 'draw'].forEach(type => {
-        if (!S.works[type]) return;
-        const easel = easels.find(e => e.type === type);
-        if (easel && !easel.completed) {
-            easel.completed = true;
-            easel.boardMat.color.set(0xFF9FF3);
-            easel.beaconEl.querySelector('.quest-beacon-text').classList.add('done');
-            worksDone++;
-        }
-    });
-    document.getElementById('work-count').innerText = worksDone + ' / ' + TOTAL_WORKS;
-    if (S.drawing) restoreDrawing(S.drawing);
-    showScreen(null);
-    if (worksDone >= TOTAL_WORKS) openGallery();
+function applyIdea(){
+  document.getElementById('idea-hud').textContent = S.ideaLabel;
+  document.getElementById('draw-hint').innerHTML =
+    'Your idea: <strong>' + S.ideaLabel + '</strong>. Draw it any way you like. It does not have to look like anything.';
 }
 
-/* =========================================================
+function restore(){
+  applyIdea();
+  ['color','shape','draw'].forEach(t => {
+    if (!S.works[t]) return;
+    const e = easels.find(x => x.type === t);
+    if (e && !e.done){ e.done = true; e.mat.color.set(0xF6F2EA); e.el.classList.add('done'); worksDone++; }
+  });
+  document.getElementById('work-count').textContent = worksDone + ' / ' + TOTAL;
+  if (S.drawing) restoreDrawing(S.drawing);
+  show(null);
+  if (worksDone >= TOTAL) openGallery();
+}
+
+/* ============================================================
    3D WORLD
-   ========================================================= */
-function init3DScene() {
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87CEEB);
-    scene.fog = new THREE.FogExp2(0x87CEEB, 0.015);
+   ============================================================ */
+function initScene(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x9FD4E8);
+  scene.fog = new THREE.FogExp2(0x9FD4E8, 0.014);
 
-    camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
-    camera.position.set(0, 12, 16); camera.lookAt(0, 0, 0);
+  camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
+  camera.position.set(0, 12, 16); camera.lookAt(0, 0, 0);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    document.getElementById('game-container').appendChild(renderer.domElement);
+  renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.getElementById('game-container').appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const sun = new THREE.DirectionalLight(0xffffff, 0.8);
-    sun.position.set(20, 40, 20); sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 100;
-    const d = 25;
-    sun.shadow.camera.left = -d; sun.shadow.camera.right = d;
-    sun.shadow.camera.top = d; sun.shadow.camera.bottom = -d;
-    scene.add(sun);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.74));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.78);
+  sun.position.set(20, 40, 20); sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 100;
+  const d = 25;
+  sun.shadow.camera.left = -d; sun.shadow.camera.right = d;
+  sun.shadow.camera.top = d;   sun.shadow.camera.bottom = -d;
+  scene.add(sun);
 
-    createWorldEnvironment(); createPlayer(); createEasels();
+  buildIsland(); buildPlayer(); buildEasels();
 }
 
-function createWorldEnvironment() {
+function buildIsland(){
+  const g = new THREE.Group();
+  const floor = new THREE.Mesh(new THREE.CylinderGeometry(18,20,2,32),
+    new THREE.MeshToonMaterial({color:0x8FCB9B}));
+  floor.position.y = -1; floor.receiveShadow = true; g.add(floor);
+
+  [{x:-22,z:-10,r:6,c:0xD8877F},{x:22,z:-8,r:7,c:0xE0C071},{x:0,z:22,r:8,c:0x9B8FC4}]
+  .forEach(p => {
+    const isle = new THREE.Mesh(new THREE.CylinderGeometry(p.r, p.r-1, 2, 16),
+      new THREE.MeshToonMaterial({color:p.c}));
+    isle.position.set(p.x, -1, p.z); isle.receiveShadow = true; g.add(isle);
+    const c = crayon(p.c); c.position.set(p.x, 1, p.z); c.rotation.z = Math.PI/6; g.add(c);
+  });
+  scene.add(g);
+
+  [{x:-10,z:-10,c:0xC96A62},{x:10,z:-12,c:0x6FB4C9},{x:-12,z:8,c:0xDDB25C},{x:12,z:10,c:0xC98BB4}]
+  .forEach(p => {
+    const t = new THREE.Group();
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.6,3,8),
+      new THREE.MeshToonMaterial({color:0x9A8E80}));
+    trunk.position.y = 1.5; trunk.castShadow = true; t.add(trunk);
+    const leaf = new THREE.Mesh(new THREE.DodecahedronGeometry(1.8,1),
+      new THREE.MeshToonMaterial({color:p.c}));
+    leaf.position.y = 3.5; leaf.castShadow = true; t.add(leaf);
+    t.position.set(p.x, 0, p.z); scene.add(t);
+  });
+}
+
+function crayon(hex){
+  const g = new THREE.Group(), m = new THREE.MeshToonMaterial({color:hex});
+  const b = new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,4,12), m);
+  b.castShadow = true; g.add(b);
+  const t = new THREE.Mesh(new THREE.ConeGeometry(0.8,1.5,12), m);
+  t.position.y = 2.75; t.castShadow = true; g.add(t);
+  return g;
+}
+
+function buildPlayer(){
+  player = new THREE.Group();
+  const skin = new THREE.MeshToonMaterial({color:0xF0D6C6});
+  const smock = new THREE.MeshToonMaterial({color:0xD8544F});
+  const beret = new THREE.MeshToonMaterial({color:0x2B2A26});
+
+  const body = new THREE.Mesh(new THREE.SphereGeometry(1,16,16), smock);
+  body.position.y = 1.2; body.scale.set(1,1.2,1); body.castShadow = true; player.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.8,16,16), skin);
+  head.position.y = 2.5; head.castShadow = true; player.add(head);
+  const hat = new THREE.Mesh(new THREE.CylinderGeometry(1,0.2,0.4,12), beret);
+  hat.position.set(0,3.2,0); hat.rotation.z = -0.2; hat.castShadow = true; player.add(hat);
+
+  const eyeM = new THREE.MeshBasicMaterial({color:0x15140F});
+  const e1 = new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8), eyeM);
+  e1.position.set(0.25, 2.6, 0.7);
+  const e2 = e1.clone(); e2.position.x = -0.25;
+  player.add(e1, e2);
+
+  brush = new THREE.Group();
+  const h = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,3,8),
+    new THREE.MeshToonMaterial({color:0xC9AC83}));
+  h.position.y = 1.5; brush.add(h);
+  const bt = new THREE.Mesh(new THREE.ConeGeometry(0.25,0.8,8),
+    new THREE.MeshToonMaterial({color:0x3B2E7E}));
+  bt.position.y = 3.2; brush.add(bt);
+  brush.position.set(0.9,1.2,0.2); brush.rotation.x = Math.PI/4;
+  player.add(brush);
+
+  player.position.set(0,0,5);
+  scene.add(player);
+}
+
+function buildEasels(){
+  const data = [
+    {x:-8, z:-2,  label:'Mixing lab',    type:'color', frame:0x7B5EA8},
+    {x:8,  z:-2,  label:'Shape workshop',type:'shape', frame:0xC9A227},
+    {x:0,  z:-10, label:'Drawing room',  type:'draw',  frame:0xC96A62}
+  ];
+  const box = document.getElementById('beacons');
+
+  data.forEach(d => {
     const g = new THREE.Group();
-    const floor = new THREE.Mesh(new THREE.CylinderGeometry(18, 20, 2, 32), new THREE.MeshToonMaterial({ color: 0x7BED9F }));
-    floor.position.y = -1; floor.receiveShadow = true; g.add(floor);
+    const legM = new THREE.MeshToonMaterial({color:0x9A8E80});
+    const l1 = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,4,8), legM);
+    l1.position.set(-1,2,0); l1.rotation.z = -0.2;
+    const l2 = l1.clone(); l2.position.x = 1; l2.rotation.z = 0.2;
+    const l3 = l1.clone(); l3.position.set(0,2,-0.8); l3.rotation.set(-0.3,0,0);
+    g.add(l1,l2,l3);
 
-    [{ x: -22, z: -10, r: 6, c: 0xFF7675 }, { x: 22, z: -8, r: 7, c: 0xFFEAA7 }, { x: 0, z: 22, r: 8, c: 0xA29BFE }]
-    .forEach(p => {
-        const isle = new THREE.Mesh(new THREE.CylinderGeometry(p.r, p.r - 1, 2, 16), new THREE.MeshToonMaterial({ color: p.c }));
-        isle.position.set(p.x, -1, p.z); isle.receiveShadow = true; g.add(isle);
-        const crayon = createCrayonMesh(p.c);
-        crayon.position.set(p.x, 1, p.z); crayon.rotation.z = Math.PI / 6; g.add(crayon);
-    });
-    scene.add(g);
-    createTrees();
+    const mat = new THREE.MeshToonMaterial({color:0xFFFFFF});
+    const board = new THREE.Mesh(new THREE.BoxGeometry(3,2.2,0.2), mat);
+    board.position.set(0,2.6,0.2); board.castShadow = true; g.add(board);
+
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(3.3,2.5,0.1),
+      new THREE.MeshToonMaterial({color:d.frame}));
+    frame.position.set(0,2.6,0.12); g.add(frame);
+
+    g.position.set(d.x, 0, d.z); scene.add(g);
+
+    const el = document.createElement('div');
+    el.className = 'beacon';
+    el.innerHTML = '<div class="lab">' + d.label + '</div><div class="mark"></div>';
+    box.appendChild(el);
+
+    easels.push({type:d.type, mat:mat, pos:new THREE.Vector3(d.x,0,d.z),
+      done:false, snoozed:false, el:el});
+  });
 }
 
-function createCrayonMesh(hex) {
-    const grp = new THREE.Group(), mat = new THREE.MeshToonMaterial({ color: hex });
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 4, 12), mat);
-    body.castShadow = true; grp.add(body);
-    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.8, 1.5, 12), mat);
-    tip.position.y = 2.75; tip.castShadow = true; grp.add(tip);
-    return grp;
-}
-
-function createTrees() {
-    [{ x: -10, z: -10, c: 0xFF6B6B }, { x: 10, z: -12, c: 0x48DBFB },
-     { x: -12, z: 8, c: 0xFECA57 }, { x: 12, z: 10, c: 0xFF9FF3 }].forEach(p => {
-        const tree = new THREE.Group();
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 3, 8), new THREE.MeshToonMaterial({ color: 0x8395A7 }));
-        trunk.position.y = 1.5; trunk.castShadow = true; tree.add(trunk);
-        const leaf = new THREE.Mesh(new THREE.DodecahedronGeometry(1.8, 1), new THREE.MeshToonMaterial({ color: p.c }));
-        leaf.position.y = 3.5; leaf.castShadow = true; tree.add(leaf);
-        tree.position.set(p.x, 0, p.z); scene.add(tree);
-    });
-}
-
-function createPlayer() {
-    player = new THREE.Group();
-    const skin = new THREE.MeshToonMaterial({ color: 0xFFDFD3 });
-    const shirt = new THREE.MeshToonMaterial({ color: 0xFF5252 });
-    const hatM = new THREE.MeshToonMaterial({ color: 0x2D3436 });
-
-    const body = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 16), shirt);
-    body.position.y = 1.2; body.scale.set(1, 1.2, 1); body.castShadow = true; player.add(body);
-
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.8, 16, 16), skin);
-    head.position.y = 2.5; head.castShadow = true; player.add(head);
-
-    const hat = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.2, 0.4, 12), hatM);
-    hat.position.set(0, 3.2, 0); hat.rotation.z = -0.2; hat.castShadow = true; player.add(hat);
-
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    const e1 = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), eyeMat);
-    e1.position.set(0.25, 2.6, 0.7);
-    const e2 = e1.clone(); e2.position.x = -0.25;
-    player.add(e1, e2);
-
-    paintbrush = new THREE.Group();
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 3, 8), new THREE.MeshToonMaterial({ color: 0xDEB887 }));
-    handle.position.y = 1.5; paintbrush.add(handle);
-    const btip = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.8, 8), new THREE.MeshToonMaterial({ color: 0xFF007F }));
-    btip.position.y = 3.2; paintbrush.add(btip);
-    paintbrush.position.set(0.9, 1.2, 0.2); paintbrush.rotation.x = Math.PI / 4;
-    player.add(paintbrush);
-
-    player.position.set(0, 0, 5);
-    scene.add(player);
-}
-
-function createEasels() {
-    const data = [
-        { id: 'color', x: -8, z: -2,  title: 'Colour Mixing', type: 'color', color: 0xA29BFE },
-        { id: 'shape', x: 8,  z: -2,  title: 'Shape Workshop', type: 'shape', color: 0xFDCB6E },
-        { id: 'draw',  x: 0,  z: -10, title: 'Free Drawing',  type: 'draw',  color: 0xFF7675 }
-    ];
-    const box = document.getElementById('beacons-container');
-
-    data.forEach(d => {
-        const grp = new THREE.Group();
-        const legMat = new THREE.MeshToonMaterial({ color: 0x8D6E63 });
-        const l1 = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 4, 8), legMat);
-        l1.position.set(-1, 2, 0); l1.rotation.z = -0.2;
-        const l2 = l1.clone(); l2.position.x = 1; l2.rotation.z = 0.2;
-        const l3 = l1.clone(); l3.position.set(0, 2, -0.8); l3.rotation.set(-0.3, 0, 0);
-        grp.add(l1, l2, l3);
-
-        const boardMat = new THREE.MeshToonMaterial({ color: 0xFFFFFF });
-        const board = new THREE.Mesh(new THREE.BoxGeometry(3, 2.2, 0.2), boardMat);
-        board.position.set(0, 2.6, 0.2); board.castShadow = true; grp.add(board);
-
-        const frame = new THREE.Mesh(new THREE.BoxGeometry(3.3, 2.5, 0.1), new THREE.MeshToonMaterial({ color: d.color }));
-        frame.position.set(0, 2.6, 0.12); grp.add(frame);
-
-        grp.position.set(d.x, 0, d.z); scene.add(grp);
-
-        const beacon = document.createElement('div');
-        beacon.className = 'quest-beacon';
-        beacon.innerHTML = '<div class="quest-beacon-icon">🖌️</div><div class="quest-beacon-text">' + d.title + '</div>';
-        box.appendChild(beacon);
-
-        easels.push({ id: d.id, type: d.type, boardMat: boardMat,
-            pos: new THREE.Vector3(d.x, 0, d.z), completed: false, snoozed: false, beaconEl: beacon });
-    });
-}
-
-/* =========================================================
+/* ============================================================
    INPUT + LOOP
-   ========================================================= */
-function setupEventListeners() {
-    addEventListener('keydown', e => { activeKeys[e.key.toLowerCase()] = 1; });
-    addEventListener('keyup',   e => { activeKeys[e.key.toLowerCase()] = 0; });
+   ============================================================ */
+function bindInput(){
+  addEventListener('keydown', e => keys[e.key.toLowerCase()] = 1);
+  addEventListener('keyup',   e => keys[e.key.toLowerCase()] = 0);
 
-    const bind = (id, k) => {
-        const el = document.getElementById(id);
-        el.addEventListener('touchstart', e => { e.preventDefault(); touchInputs[k] = 1; });
-        el.addEventListener('touchend',   e => { e.preventDefault(); touchInputs[k] = 0; });
-        el.addEventListener('mousedown', () => touchInputs[k] = 1);
-        el.addEventListener('mouseup',   () => touchInputs[k] = 0);
-        el.addEventListener('mouseleave',() => touchInputs[k] = 0);
-    };
-    bind('btn-up', 'up'); bind('btn-down', 'down'); bind('btn-left', 'left'); bind('btn-right', 'right');
+  const b = (id,k) => {
+    const el = document.getElementById(id);
+    el.addEventListener('touchstart', e => {e.preventDefault(); pad[k]=1;});
+    el.addEventListener('touchend',   e => {e.preventDefault(); pad[k]=0;});
+    el.addEventListener('mousedown', () => pad[k]=1);
+    el.addEventListener('mouseup',   () => pad[k]=0);
+    el.addEventListener('mouseleave',() => pad[k]=0);
+  };
+  b('btn-up','up'); b('btn-down','down'); b('btn-left','left'); b('btn-right','right');
 
-    addEventListener('resize', () => {
-        camera.aspect = innerWidth / innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(innerWidth, innerHeight);
-    });
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
 
-    document.getElementById('btn-again').onclick   = restartGame;
-    document.getElementById('btn-switch').onclick  = switchStudent;
-    document.getElementById('btn-download').onclick = downloadDrawing;
+  document.getElementById('btn-again').onclick = restartGame;
+  document.getElementById('btn-switch').onclick = switchStudent;
+  document.getElementById('btn-download').onclick = downloadDrawing;
 }
 
-function animate() {
-    requestAnimationFrame(animate);
-    const dt = clock.getDelta(), t = clock.getElapsedTime();
-    updatePlayerMovement(dt, t);
-    updateBeaconsPosition();
-    checkEaselProximity();
-    if (paintbrush) paintbrush.rotation.y = Math.sin(t * 3) * 0.2;
-    renderer.render(scene, camera);
+function loop(){
+  requestAnimationFrame(loop);
+  if (!renderer || !player) return;
+  const dt = clock.getDelta(), t = clock.getElapsedTime();
+  move(dt, t); placeBeacons(); proximity();
+  if (brush) brush.rotation.y = Math.sin(t*3) * 0.2;
+  renderer.render(scene, camera);
 }
 
-function updatePlayerMovement(dt, t) {
-    if (activeChallenge || screenOpen()) return;
-    const speed = 7, k = activeKeys;
-    let mx = 0, mz = 0;
-    if (k['w'] || k['arrowup']    || touchInputs.up)    mz -= 1;
-    if (k['s'] || k['arrowdown']  || touchInputs.down)  mz += 1;
-    if (k['a'] || k['arrowleft']  || touchInputs.left)  mx -= 1;
-    if (k['d'] || k['arrowright'] || touchInputs.right) mx += 1;
+function move(dt, t){
+  if (!player || active || screenOpen()) return;
+  let mx = 0, mz = 0;
+  if (keys['w']||keys['arrowup']   ||pad.up)    mz -= 1;
+  if (keys['s']||keys['arrowdown'] ||pad.down)  mz += 1;
+  if (keys['a']||keys['arrowleft'] ||pad.left)  mx -= 1;
+  if (keys['d']||keys['arrowright']||pad.right) mx += 1;
+  if (jump > 0) jump -= dt;
 
-    if (jumpTimer > 0) jumpTimer -= dt;
+  if (mx || mz){
+    const v = new THREE.Vector3(mx,0,mz).normalize();
+    player.position.x += v.x * 7 * dt;
+    player.position.z += v.z * 7 * dt;
+    const r = Math.hypot(player.position.x, player.position.z);
+    if (r > 16){ player.position.x = player.position.x/r*16; player.position.z = player.position.z/r*16; }
+    player.rotation.y = Math.atan2(v.x, v.z);
+    player.position.y = Math.abs(Math.sin(t*10)) * 0.3;
+  } else {
+    player.position.y = Math.sin(t*2) * 0.05;
+  }
+  if (jump > 0) player.position.y += jump * 6;
 
-    if (mx || mz) {
-        const v = new THREE.Vector3(mx, 0, mz).normalize();
-        player.position.x += v.x * speed * dt;
-        player.position.z += v.z * speed * dt;
-        const dist = Math.hypot(player.position.x, player.position.z);
-        if (dist > 16) { player.position.x = player.position.x / dist * 16; player.position.z = player.position.z / dist * 16; }
-        player.rotation.y = Math.atan2(v.x, v.z);
-        player.position.y = Math.abs(Math.sin(t * 10)) * 0.3;
-    } else {
-        player.position.y = Math.sin(t * 2) * 0.05;
-    }
-    if (jumpTimer > 0) player.position.y += jumpTimer * 6;
-
-    camera.position.lerp(new THREE.Vector3(player.position.x, player.position.y + 10, player.position.z + 14), 0.05);
-    camera.lookAt(player.position.x, player.position.y + 1, player.position.z);
+  camera.position.lerp(new THREE.Vector3(player.position.x, player.position.y+10, player.position.z+14), 0.05);
+  camera.lookAt(player.position.x, player.position.y+1, player.position.z);
 }
 
-function updateBeaconsPosition() {
-    easels.forEach(e => {
-        const p = e.pos.clone().add(new THREE.Vector3(0, 4, 0));
-        p.project(camera);
-        e.beaconEl.style.left = ((p.x * .5 + .5) * innerWidth) + 'px';
-        e.beaconEl.style.top  = ((-(p.y * .5) + .5) * innerHeight) + 'px';
-    });
+function placeBeacons(){
+  easels.forEach(e => {
+    const p = e.pos.clone().add(new THREE.Vector3(0,4,0));
+    p.project(camera);
+    e.el.style.left = ((p.x*.5+.5)*innerWidth) + 'px';
+    e.el.style.top  = ((-(p.y*.5)+.5)*innerHeight) + 'px';
+  });
 }
 
-function checkEaselProximity() {
-    if (screenOpen()) return;
-    easels.forEach(e => {
-        if (e.completed) return;
-        const dist = player.position.distanceTo(e.pos);
-        if (e.snoozed) { if (dist > 5) e.snoozed = false; return; }
-        if (!activeChallenge && dist < 2.5) triggerChallenge(e);
-    });
+function proximity(){
+  if (!player || screenOpen()) return;
+  easels.forEach(e => {
+    if (e.done) return;
+    const d = player.position.distanceTo(e.pos);
+    if (e.snoozed){ if (d > 5) e.snoozed = false; return; }
+    if (!active && d < 2.5) enter(e);
+  });
 }
 
-function triggerChallenge(easel) {
-    activeChallenge = easel;
-    stationEnteredAt = performance.now();
-    if (easel.type === 'color') { resetColorMix(); openModal('modal-color'); }
-    else if (easel.type === 'shape') { document.getElementById('shape-feedback').innerText = ''; openModal('modal-shape'); }
-    else { openModal('modal-draw'); }
+function enter(e){
+  active = e; enteredAt = performance.now();
+  if (e.type === 'color'){ resetColorMix(); openModal('modal-color'); }
+  else if (e.type === 'shape'){ document.getElementById('shape-note').textContent=''; openModal('modal-shape'); }
+  else openModal('modal-draw');
 }
 
-function openModal(id) { document.getElementById(id).classList.add('active'); }
-function closeAllModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
-
-function closeChallenge() {
-    if (activeChallenge) { activeChallenge.snoozed = true; S.log.walkAways++; saveSession(); }
-    activeChallenge = null;
-    closeAllModals();
+function closeChallenge(){
+  if (active){ active.snoozed = true; S.log.walkAways++; saveSession(); }
+  active = null; closeModals();
 }
 
-/* =========================================================
-   STATION 1: colour mixing (all primary pairs valid)
-   ========================================================= */
-function selectMixColor(hex, name) {
-    if (selectedColors.length >= 2) return;
-    selectedColors.push({ hex, name });
-    document.getElementById(selectedColors.length === 1 ? 'mix-slot-1' : 'mix-slot-2').style.backgroundColor = hex;
-    if (selectedColors.length === 2) evaluateColorMix();
+/* ============================================================
+   STATION 1
+   ============================================================ */
+function selectMixColor(hex, name){
+  if (picked.length >= 2) return;
+  picked.push({hex, name});
+  document.getElementById(picked.length === 1 ? 'mix-1' : 'mix-2').style.backgroundColor = hex;
+  if (picked.length === 2) evalMix();
 }
 
-function evaluateColorMix() {
-    const a = selectedColors[0].name, b = selectedColors[1].name;
-    const res = document.getElementById('mix-result'), fb = document.getElementById('color-feedback');
-
-    if (a === b) {
-        S.log.sameColourTries++;
-        res.style.backgroundColor = selectedColors[0].hex;
-        fb.style.color = '#6C5CE7';
-        fb.innerText = 'Two of the same colour stay the same. Try a different one.';
-        setTimeout(resetColorMix, 1400);
-        return;
-    }
-    const mix = MIX_TABLE[[a, b].sort().join('|')];
-    res.style.backgroundColor = mix.hex;
-    fb.style.color = '#00B894';
-    fb.innerText = COLOR_EN[a] + ' + ' + COLOR_EN[b] + ' makes ' + mix.name + '. You mixed a new colour!';
-    S.works.color = { a: a, b: b, result: mix.name, hex: mix.hex };
-    setTimeout(() => finishStation('color'), 1100);
+function evalMix(){
+  const a = picked[0].name, b = picked[1].name;
+  const r = document.getElementById('mix-r'), n = document.getElementById('color-note');
+  if (a === b){
+    S.log.sameColourTries++;
+    r.style.backgroundColor = picked[0].hex;
+    n.className = 'note'; n.textContent = 'Two of the same colour stay the same. Try a different one.';
+    setTimeout(resetColorMix, 1400); return;
+  }
+  const m = MIX_TABLE[[a,b].sort().join('|')];
+  r.style.backgroundColor = m.hex;
+  n.className = 'note good';
+  n.textContent = COLOR_EN[a] + ' and ' + COLOR_EN[b] + ' make ' + m.name + '.';
+  S.works.color = {a:a, b:b, result:m.name, hex:m.hex};
+  setTimeout(() => finish('color'), 1100);
 }
 
-function resetColorMix() {
-    if (selectedColors.length) S.log.mixResets++;
-    selectedColors = [];
-    document.getElementById('mix-slot-1').style.backgroundColor = 'transparent';
-    document.getElementById('mix-slot-2').style.backgroundColor = 'transparent';
-    document.getElementById('mix-result').style.backgroundColor = '#EEE';
-    document.getElementById('color-feedback').innerText = '';
+function resetColorMix(){
+  if (picked.length) S.log.mixResets++;
+  picked = [];
+  ['mix-1','mix-2','mix-r'].forEach(id => document.getElementById(id).style.backgroundColor = '#FFF');
+  const n = document.getElementById('color-note'); n.textContent = ''; n.className = 'note';
 }
 
-/* =========================================================
-   STATION 2: shapes (every choice valid)
-   ========================================================= */
-function pickShape(name, glyph) {
-    const fb = document.getElementById('shape-feedback');
-    fb.style.color = '#00B894';
-    fb.innerText = 'You added a ' + name + ' ' + glyph + ' to your artwork.';
-    S.works.shape = { name: name, glyph: glyph };
-    setTimeout(() => finishStation('shape'), 900);
+/* ============================================================
+   STATION 2
+   ============================================================ */
+function pickShape(name){
+  const n = document.getElementById('shape-note');
+  n.className = 'note good';
+  n.textContent = 'A ' + name + ' is now part of your work.';
+  S.works.shape = {name:name};
+  setTimeout(() => finish('shape'), 900);
 }
 
-/* =========================================================
-   STATION 3: free drawing
-   ========================================================= */
-function init2DPaintCanvas() {
+/* ============================================================
+   STATION 3
+   ============================================================ */
+function initCanvas(){
+  const cv = document.getElementById('paint-canvas');
+  pctx = cv.getContext('2d');
+  pctx.lineWidth = 7; pctx.lineCap = 'round'; pctx.lineJoin = 'round';
+  pctx.strokeStyle = penColor;
+
+  const at = e => {
+    const r = cv.getBoundingClientRect();
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    return {x:(x-r.left)*(cv.width/r.width), y:(y-r.top)*(cv.height/r.height)};
+  };
+  const down = e => { e.preventDefault(); painting = true; touched = true; S.log.strokes++;
+    const p = at(e); pctx.beginPath(); pctx.moveTo(p.x, p.y); };
+  const mv   = e => { if(!painting) return; e.preventDefault();
+    const p = at(e); pctx.lineTo(p.x, p.y); pctx.stroke(); };
+  const up   = () => painting = false;
+
+  cv.addEventListener('mousedown', down);
+  cv.addEventListener('mousemove', mv);
+  addEventListener('mouseup', up);
+  cv.addEventListener('touchstart', down, {passive:false});
+  cv.addEventListener('touchmove', mv, {passive:false});
+  cv.addEventListener('touchend', up);
+}
+
+function clearCanvas(){
+  const cv = document.getElementById('paint-canvas');
+  if (touched) S.log.canvasClears++;
+  pctx.clearRect(0, 0, cv.width, cv.height);
+  touched = false;
+}
+
+function finishDrawing(){
+  S.works.draw = {blank: !touched};
+  S.drawing = exportDrawing();
+  finish('draw');
+}
+
+function exportDrawing(){
+  const src = document.getElementById('paint-canvas');
+  const out = document.createElement('canvas');
+  out.width = 168; out.height = 112;
+  const c = out.getContext('2d');
+  c.fillStyle = '#FFFFFF'; c.fillRect(0, 0, 168, 112);
+  c.drawImage(src, 0, 0, 168, 112);
+  return out.toDataURL('image/png');
+}
+
+function restoreDrawing(url){
+  const img = new Image();
+  img.onload = () => {
     const cv = document.getElementById('paint-canvas');
-    paintCtx = cv.getContext('2d');
-    paintCtx.lineWidth = 8; paintCtx.lineCap = 'round'; paintCtx.lineJoin = 'round';
-    paintCtx.strokeStyle = paintColor;
-
-    const pos = e => {
-        const r = cv.getBoundingClientRect();
-        const cx = e.touches ? e.touches[0].clientX : e.clientX;
-        const cy = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: (cx - r.left) * (cv.width / r.width), y: (cy - r.top) * (cv.height / r.height) };
-    };
-    const start = e => { e.preventDefault(); isPainting = true; canvasTouched = true; S.log.strokes++;
-        const p = pos(e); paintCtx.beginPath(); paintCtx.moveTo(p.x, p.y); };
-    const move  = e => { if (!isPainting) return; e.preventDefault();
-        const p = pos(e); paintCtx.lineTo(p.x, p.y); paintCtx.stroke(); };
-    const stop  = () => { isPainting = false; };
-
-    cv.addEventListener('mousedown', start);
-    cv.addEventListener('mousemove', move);
-    addEventListener('mouseup', stop);
-    cv.addEventListener('touchstart', start, { passive: false });
-    cv.addEventListener('touchmove', move, { passive: false });
-    cv.addEventListener('touchend', stop);
+    pctx.drawImage(img, 0, 0, cv.width, cv.height);
+    touched = true;
+  };
+  img.src = url;
 }
 
-function setPaintColor(c, btn) {
-    paintColor = c; paintCtx.strokeStyle = c;
-    document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
+function downloadDrawing(){
+  const a = document.createElement('a');
+  a.href = document.getElementById('paint-canvas').toDataURL('image/png');
+  a.download = 'artadventure-' + S.classCode + '-' + S.seat + '.png';
+  a.click();
 }
 
-function clearCanvas() {
-    const cv = document.getElementById('paint-canvas');
-    if (canvasTouched) S.log.canvasClears++;
-    paintCtx.clearRect(0, 0, cv.width, cv.height);
-    canvasTouched = false;
-}
-
-function finishDrawing() {
-    S.works.draw = { blank: !canvasTouched };
-    S.drawing = exportDrawing();
-    finishStation('draw');
-}
-
-function exportDrawing() {
-    const src = document.getElementById('paint-canvas');
-    const out = document.createElement('canvas');
-    out.width = 160; out.height = 110;
-    const c = out.getContext('2d');
-    c.fillStyle = '#FFFFFF'; c.fillRect(0, 0, 160, 110);
-    c.drawImage(src, 0, 0, 160, 110);
-    return out.toDataURL('image/png');
-}
-
-function restoreDrawing(dataUrl) {
-    const img = new Image();
-    img.onload = () => {
-        const cv = document.getElementById('paint-canvas');
-        paintCtx.drawImage(img, 0, 0, cv.width, cv.height);
-        canvasTouched = true;
-    };
-    img.src = dataUrl;
-}
-
-function downloadDrawing() {
-    const a = document.createElement('a');
-    a.href = document.getElementById('paint-canvas').toDataURL('image/png');
-    a.download = 'artadventure-' + S.classCode + '-' + S.seat + '.png';
-    a.click();
-}
-
-/* =========================================================
-   REFLECTION LAYER
-   ========================================================= */
+/* ============================================================
+   REFLECTION
+   ============================================================ */
 const REFLECT = {
-    color: () => ({
-        q: 'Which colour do you like better?',
-        sub: 'There is no better one. Just pick the one you like.',
-        type: 'swatch',
-        options: [
-            { v: 'mixed', hex: S.works.color.hex,        label: 'the new one' },
-            { v: 'first', hex: COLOR_HEX[S.works.color.a], label: COLOR_EN[S.works.color.a] },
-            { v: 'second', hex: COLOR_HEX[S.works.color.b], label: COLOR_EN[S.works.color.b] }
-        ]
-    }),
-    shape: () => ({
-        q: 'Why did you pick that shape?',
-        sub: '',
-        type: 'list',
-        options: [
-            { v: 'nice',   label: 'It looks nice' },
-            { v: 'fun',    label: 'It is fun' },
-            { v: 'remind', label: 'It reminds me of something' },
-            { v: 'felt',   label: 'I just felt like it' }
-        ]
-    }),
-    draw: () => ({
-        q: 'How much of this came from your idea?',
-        sub: 'Your idea was: ' + S.ideaLabel,
-        type: 'list',
-        options: [
-            { v: 'all',    label: 'All of it' },
-            { v: 'some',   label: 'Some of it' },
-            { v: 'changed',label: 'I changed my mind while drawing' },
-            { v: 'new',    label: 'It became something new' }
-        ]
-    })
+  color: () => ({q:'Which colour do you like better?',
+    sub:'There is no better one. Pick the one you like.', type:'swatch',
+    options:[{v:'mixed', hex:S.works.color.hex, label:S.works.color.result},
+             {v:'first', hex:COLOR_HEX[S.works.color.a], label:COLOR_EN[S.works.color.a]},
+             {v:'second',hex:COLOR_HEX[S.works.color.b], label:COLOR_EN[S.works.color.b]}]}),
+  shape: () => ({q:'Why did you pick that shape?', sub:'', type:'list',
+    options:[{v:'nice',label:'It looks nice'},{v:'fun',label:'It is fun'},
+             {v:'remind',label:'It reminds me of something'},{v:'felt',label:'I just felt like it'}]}),
+  draw: () => ({q:'How much of this came from your idea?',
+    sub:'Your idea was: ' + S.ideaLabel, type:'list',
+    options:[{v:'all',label:'All of it'},{v:'some',label:'Some of it'},
+             {v:'changed',label:'I changed my mind while drawing'},{v:'new',label:'It became something new'}]})
 };
 
-let reflectPick = null;
-function askReflection(type, done) {
-    const cfg = REFLECT[type]();
-    reflectPick = null;
-    document.getElementById('reflect-q').innerText = cfg.q;
-    document.getElementById('reflect-sub').innerText = cfg.sub;
-    const body = document.getElementById('reflect-body');
-    const go = document.getElementById('btn-reflect-go');
-    go.disabled = true;
-    body.innerHTML = '';
+let rPick = null;
+function ask(type, done){
+  const cfg = REFLECT[type]();
+  rPick = null;
+  document.getElementById('reflect-q').textContent = cfg.q;
+  document.getElementById('reflect-sub').textContent = cfg.sub;
+  document.getElementById('reflect-sub').style.display = cfg.sub ? '' : 'none';
+  const body = document.getElementById('reflect-body');
+  const go = document.getElementById('btn-reflect-go');
+  go.disabled = true; body.innerHTML = '';
 
-    if (cfg.type === 'swatch') {
-        const row = document.createElement('div'); row.className = 'swatch-row';
-        cfg.options.forEach(o => {
-            const wrap = document.createElement('div');
-            wrap.style.textAlign = 'center';
-            const sw = document.createElement('div');
-            sw.className = 'swatch'; sw.style.background = o.hex;
-            const cap = document.createElement('div');
-            cap.style.cssText = 'font-size:12px;color:#636E72;margin-top:5px;font-weight:bold;';
-            cap.innerText = o.label;
-            wrap.appendChild(sw); wrap.appendChild(cap);
-            sw.onclick = () => {
-                row.querySelectorAll('.swatch').forEach(s => s.classList.remove('picked'));
-                sw.classList.add('picked'); reflectPick = o.v; go.disabled = false;
-            };
-            row.appendChild(wrap);
-        });
-        body.appendChild(row);
-    } else {
-        const list = document.createElement('div'); list.className = 'opt-list';
-        cfg.options.forEach(o => {
-            const el = document.createElement('div');
-            el.className = 'opt'; el.innerText = o.label;
-            el.onclick = () => {
-                list.querySelectorAll('.opt').forEach(x => x.classList.remove('picked'));
-                el.classList.add('picked'); reflectPick = o.v; go.disabled = false;
-            };
-            list.appendChild(el);
-        });
-        body.appendChild(list);
-    }
+  if (cfg.type === 'swatch'){
+    const row = document.createElement('div'); row.className = 'swatches';
+    cfg.options.forEach(o => {
+      const el = document.createElement('div');
+      el.className = 'sw';
+      el.innerHTML = '<div class="disc" style="background:'+o.hex+'"></div><span class="cap">'+o.label+'</span>';
+      el.onclick = () => {
+        row.querySelectorAll('.sw').forEach(x => x.classList.remove('on'));
+        el.classList.add('on'); rPick = o.v; go.disabled = false;
+      };
+      row.appendChild(el);
+    });
+    body.appendChild(row);
+  } else {
+    const list = document.createElement('div'); list.className = 'stack';
+    cfg.options.forEach(o => {
+      const b = document.createElement('button');
+      b.className = 'pick'; b.textContent = o.label;
+      b.onclick = () => {
+        list.querySelectorAll('.pick').forEach(x => x.classList.remove('on'));
+        b.classList.add('on'); rPick = o.v; go.disabled = false;
+      };
+      list.appendChild(b);
+    });
+    body.appendChild(list);
+  }
 
-    go.onclick = () => {
-        S.reflect[type] = reflectPick;
+  go.onclick = () => {
+    S.reflect[type] = rPick; saveSession();
+    document.getElementById('modal-reflect').classList.remove('on');
+    done();
+  };
+  openModal('modal-reflect');
+}
+
+function finish(type){
+  if (!active) return;
+  const e = active;
+  closeModals();
+  S.log.seconds[type] = Math.round((performance.now() - enteredAt) / 1000);
+  S.log.order.push(type);
+  saveSession();
+
+  ask(type, () => {
+    e.done = true; e.mat.color.set(0xF6F2EA); e.el.classList.add('done');
+    worksDone++;
+    document.getElementById('work-count').textContent = worksDone + ' / ' + TOTAL;
+    jump = 0.35; active = null;
+    if (worksDone >= TOTAL) setTimeout(openGallery, 650);
+  });
+}
+
+/* ============================================================
+   GALLERY - wall labels
+   ============================================================ */
+function labelHTML(kind, selectable){
+  const seat = S.classCode + ' &middot; ' + S.seat;
+  const date = new Date().getFullYear();
+  if (kind === 'color'){
+    const w = S.works.color;
+    return {plate:'<div class="disc" style="background:'+w.hex+'"></div>',
+      t:'Untitled (' + w.result + ')',
+      m:COLOR_EN[w.a] + ' and ' + COLOR_EN[w.b] + ', mixed<br>' + seat + ', ' + date};
+  }
+  if (kind === 'shape'){
+    return {plate:shapeSVG(S.works.shape.name, 46),
+      t:'Untitled (' + S.works.shape.name + ')',
+      m:'Chosen form<br>' + seat + ', ' + date};
+  }
+  return {plate:'<img src="'+S.drawing+'" alt="drawing">',
+    t:S.galleryName || 'Untitled',
+    m:'Marker on paper<br>' + seat + ', ' + date};
+}
+
+function renderLabels(target, selectable){
+  const box = document.getElementById(target);
+  box.innerHTML = '';
+  ['color','shape','draw'].forEach(k => {
+    const d = labelHTML(k);
+    const el = document.createElement('div');
+    el.className = 'label' + (!selectable && S.reflect.mostLikeMe === k ? ' on' : '');
+    el.innerHTML = '<div class="plate">'+d.plate+'</div>' +
+      '<div class="txt"><span class="t">'+d.t+'</span><span class="m">'+d.m+'</span></div>';
+    if (selectable){
+      el.onclick = () => {
+        box.querySelectorAll('.label').forEach(x => x.classList.remove('on'));
+        el.classList.add('on');
+        S.reflect.mostLikeMe = k;
+        document.getElementById('btn-submit').disabled = false;
         saveSession();
-        document.getElementById('modal-reflect').classList.remove('active');
-        done();
-    };
-    openModal('modal-reflect');
-}
-
-/* =========================================================
-   STATION COMPLETION
-   ========================================================= */
-function finishStation(type) {
-    if (!activeChallenge) return;
-    const easel = activeChallenge;
-    closeAllModals();
-
-    S.log.seconds[type] = Math.round((performance.now() - stationEnteredAt) / 1000);
-    S.log.order.push(type);
-    saveSession();
-
-    askReflection(type, () => {
-        easel.completed = true;
-        easel.boardMat.color.set(0xFF9FF3);
-        easel.beaconEl.querySelector('.quest-beacon-text').classList.add('done');
-        worksDone++;
-        document.getElementById('work-count').innerText = worksDone + ' / ' + TOTAL_WORKS;
-        jumpTimer = 0.35;
-        activeChallenge = null;
-        if (worksDone >= TOTAL_WORKS) setTimeout(openGallery, 700);
-    });
-}
-
-/* =========================================================
-   GALLERY + SUBMISSION
-   ========================================================= */
-function openGallery() {
-    document.getElementById('gal-idea').innerText = (S.ideaEmo || '') + ' ' + S.ideaLabel;
-    const tiles = document.getElementById('gal-tiles');
-    tiles.innerHTML = '';
-
-    const items = [
-        { v: 'color', cap: 'My colour', html: '<div class="swatch-mini" style="background:' + S.works.color.hex + '"></div>' },
-        { v: 'shape', cap: 'My shape',  html: '<div class="glyph">' + S.works.shape.glyph + '</div>' },
-        { v: 'draw',  cap: 'My drawing', html: '<img src="' + S.drawing + '" alt="my drawing">' }
-    ];
-
-    items.forEach(it => {
-        const el = document.createElement('div');
-        el.className = 'tile';
-        el.innerHTML = it.html + '<div class="cap">' + it.cap + '</div>';
-        el.onclick = () => {
-            tiles.querySelectorAll('.tile').forEach(t => t.classList.remove('picked'));
-            el.classList.add('picked');
-            S.reflect.mostLikeMe = it.v;
-            document.getElementById('btn-submit').disabled = false;
-            saveSession();
-        };
-        tiles.appendChild(el);
-    });
-
-    document.getElementById('btn-submit').onclick = submitSession;
-    showScreen('screen-gallery');
-}
-
-async function submitSession() {
-    const btn = document.getElementById('btn-submit');
-    const status = document.getElementById('submit-status');
-    S.galleryName = document.getElementById('in-galname').value.trim();
-    S.log.totalSeconds = Math.round((Date.now() - new Date(S.startedAt).getTime()) / 1000);
-    S.submittedAt = new Date().toISOString();
-    btn.disabled = true;
-    status.className = 'status';
-    status.innerText = 'Sending to your teacher...';
-
-    let sent = false;
-    if (APPS_SCRIPT_URL) {
-        try {
-            await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(S)
-            });
-            sent = true;
-        } catch (err) { sent = false; }
+      };
     }
-
-    S.submitted = true;
-    S.sentToTeacher = sent;
-    saveSession();
-
-    document.getElementById('done-line').innerHTML =
-        (S.galleryName ? '<b>' + escapeHtml(S.galleryName) + '</b><br>' : '') +
-        'Three artworks, all from your own idea.<br>Everyone makes something different. That is your own view.';
-    document.getElementById('done-status').innerHTML = sent
-        ? 'Your teacher can see your gallery now.'
-        : (APPS_SCRIPT_URL
-            ? '<span style="color:#E17055;">Could not reach your teacher. Your work is saved on this tablet.</span>'
-            : 'Your work is saved on this tablet.');
-    showScreen('screen-done');
+    box.appendChild(el);
+  });
 }
 
-function escapeHtml(s) {
-    return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function openGallery(){
+  document.getElementById('gal-idea').textContent = S.ideaLabel;
+  renderLabels('gal-labels', true);
+  document.getElementById('btn-submit').onclick = submit;
+  show('screen-gallery');
 }
 
-/* =========================================================
-   RESTART / SWITCH STUDENT
-   ========================================================= */
-function restartGame() {
-    const c = S.classCode, s = S.seat;
-    S = newSession(c, s);
-    resetWorld();
-    saveSession();
-    showScreen('screen-idea');
+async function submit(){
+  const btn = document.getElementById('btn-submit');
+  const note = document.getElementById('submit-note');
+  S.galleryName = document.getElementById('in-galname').value.trim();
+  S.log.totalSeconds = Math.round((Date.now() - new Date(S.startedAt).getTime()) / 1000);
+  S.submittedAt = new Date().toISOString();
+  btn.disabled = true;
+  note.className = 'note'; note.textContent = 'Sending to your teacher...';
+
+  let sent = false;
+  if (APPS_SCRIPT_URL){
+    const payload = JSON.stringify(S);
+    try {
+      await fetch(APPS_SCRIPT_URL, {method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'}, body:payload});
+      sent = true;
+    } catch(err){
+      try {
+        sent = navigator.sendBeacon(APPS_SCRIPT_URL,
+          new Blob([payload], {type:'text/plain;charset=utf-8'}));
+      } catch(e2){ sent = false; }
+    }
+  }
+
+  S.submitted = true; S.sentToTeacher = sent; saveSession();
+
+  document.getElementById('done-title').textContent = S.galleryName || 'All done';
+  document.getElementById('done-line').innerHTML =
+    'Three works, all from your own idea.<br>Everyone makes something different. That is your own view.';
+  renderLabels('done-labels', false);
+  const dn = document.getElementById('done-note');
+  if (sent){ dn.className = 'note good'; dn.textContent = 'Sent. Your teacher can see your gallery.'; }
+  else if (APPS_SCRIPT_URL){ dn.className = 'note warn'; dn.textContent = 'Could not reach your teacher. Your work is saved on this device.'; }
+  else { dn.className = 'note'; dn.textContent = 'Your work is saved on this device.'; }
+  show('screen-done');
+  drift();
 }
 
-function switchStudent() {
-    Store.del(KEY);
-    S = null;
-    resetWorld();
-    document.getElementById('in-class').value = '';
-    document.getElementById('in-seat').value = '';
-    document.getElementById('btn-resume').style.display = 'none';
-    document.getElementById('start-feedback').innerText = '';
-    showScreen('screen-start');
-}
-
-function resetWorld() {
-    worksDone = 0;
-    document.getElementById('work-count').innerText = '0 / ' + TOTAL_WORKS;
-    easels.forEach(e => {
-        e.completed = false; e.snoozed = true;
-        e.boardMat.color.set(0xFFFFFF);
-        e.beaconEl.querySelector('.quest-beacon-text').classList.remove('done');
+/* ============================================================
+   CLOSING MOTION - the child's own colours settle on the wall
+   ============================================================ */
+function drift(){
+  const cv = document.getElementById('drift'), ctx = cv.getContext('2d');
+  cv.width = innerWidth; cv.height = innerHeight;
+  const cols = [S.works.color.hex, COLOR_HEX[S.works.color.a], COLOR_HEX[S.works.color.b]];
+  const parts = Array.from({length:34}, () => ({
+    x: Math.random()*cv.width, y: -Math.random()*cv.height*0.6,
+    s: 5 + Math.random()*7, v: 0.5 + Math.random()*0.9,
+    c: cols[Math.floor(Math.random()*cols.length)], o: 0.55 + Math.random()*0.35
+  }));
+  (function frame(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p => {
+      p.y += p.v;
+      ctx.globalAlpha = p.o; ctx.fillStyle = p.c;
+      ctx.fillRect(p.x, p.y, p.s, p.s);
     });
-    selectedColors = [];
-    document.getElementById('mix-slot-1').style.backgroundColor = 'transparent';
-    document.getElementById('mix-slot-2').style.backgroundColor = 'transparent';
-    document.getElementById('mix-result').style.backgroundColor = '#EEE';
-    document.getElementById('color-feedback').innerText = '';
-    document.getElementById('shape-feedback').innerText = '';
-    const cv = document.getElementById('paint-canvas');
-    paintCtx.clearRect(0, 0, cv.width, cv.height);
-    canvasTouched = false;
-    document.getElementById('in-galname').value = '';
-    document.getElementById('btn-submit').disabled = true;
-    document.getElementById('submit-status').innerText = '';
-    document.querySelectorAll('.idea-opt').forEach(o => o.classList.remove('picked'));
-    document.getElementById('btn-idea-go').disabled = true;
-    closeAllModals();
-    activeChallenge = null;
-    player.position.set(0, 0, 5);
+    ctx.globalAlpha = 1;
+    if (document.getElementById('screen-done').classList.contains('on')) requestAnimationFrame(frame);
+    else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+function restartGame(){
+  const c = S.classCode, s = S.seat;
+  S = newSession(c, s); resetWorld(); saveSession(); show('screen-idea');
+}
+
+function switchStudent(){
+  Store.del(KEY); S = null; resetWorld();
+  document.getElementById('in-class').value = '';
+  document.getElementById('in-seat').value = '';
+  document.getElementById('btn-resume').style.display = 'none';
+  document.getElementById('start-note').textContent = '';
+  show('screen-start');
+}
+
+function resetWorld(){
+  worksDone = 0;
+  const has3D = !!player;
+  document.getElementById('work-count').textContent = '0 / ' + TOTAL;
+  document.getElementById('idea-hud').textContent = 'Not chosen yet';
+  easels.forEach(e => {
+    e.done = false; e.snoozed = true;
+    e.mat.color.set(0xFFFFFF); e.el.classList.remove('done');
+  });
+  picked = [];
+  ['mix-1','mix-2','mix-r'].forEach(id => document.getElementById(id).style.backgroundColor = '#FFF');
+  document.getElementById('color-note').textContent = '';
+  document.getElementById('shape-note').textContent = '';
+  const cv = document.getElementById('paint-canvas');
+  pctx.clearRect(0, 0, cv.width, cv.height); touched = false;
+  document.getElementById('in-galname').value = '';
+  document.getElementById('btn-submit').disabled = true;
+  document.getElementById('submit-note').textContent = '';
+  document.querySelectorAll('#idea-grid .pick').forEach(x => x.classList.remove('on'));
+  document.getElementById('btn-idea-go').disabled = true;
+  closeModals(); active = null;
+  if (has3D) player.position.set(0, 0, 5);
 }
 </script>
 </body>
